@@ -1,5 +1,5 @@
 
-package com.example.ultimatetank.fragment;
+package net.cattaka.android.ultimatetank.fragment;
 
 import android.app.Fragment;
 import android.content.BroadcastReceiver;

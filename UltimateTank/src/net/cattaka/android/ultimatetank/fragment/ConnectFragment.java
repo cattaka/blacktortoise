@@ -1,5 +1,5 @@
 
-package com.example.ultimatetank.fragment;
+package net.cattaka.android.ultimatetank.fragment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,8 +23,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.example.ultimatetank.R;
-import com.example.ultimatetank.usb.UsbClass;
+import net.cattaka.android.ultimatetank.R;
+import net.cattaka.android.ultimatetank.usb.UsbClass;
 
 public class ConnectFragment extends BaseFragment implements OnItemClickListener {
     private ListView mUsbDeviceList;

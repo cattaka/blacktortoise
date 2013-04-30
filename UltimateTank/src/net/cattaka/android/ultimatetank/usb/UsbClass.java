@@ -1,5 +1,5 @@
 
-package com.example.ultimatetank.usb;
+package net.cattaka.android.ultimatetank.usb;
 
 import android.hardware.usb.UsbConstants;
 

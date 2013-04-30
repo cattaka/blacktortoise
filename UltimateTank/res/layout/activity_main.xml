@@ -9,7 +9,7 @@
     tools:context=".MainActivity" >
 
     <fragment
-        android:name="com.example.ultimatetank.fragment.ConnectFragment"
+        android:name="net.cattaka.android.ultimatetank.fragment.ConnectFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:tag="primaryFragment" />

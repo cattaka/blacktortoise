@@ -1,11 +1,12 @@
 
-package com.example.ultimatetank;
+package net.cattaka.android.ultimatetank;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 
-import com.example.ultimatetank.fragment.BaseFragment.IBaseFragmentAdapter;
+import net.cattaka.android.ultimatetank.R;
+import net.cattaka.android.ultimatetank.fragment.BaseFragment.IBaseFragmentAdapter;
 
 public class MainActivity extends Activity implements IBaseFragmentAdapter {
 

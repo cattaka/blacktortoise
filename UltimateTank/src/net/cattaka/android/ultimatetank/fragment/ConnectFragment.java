@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import net.cattaka.android.ultimatetank.R;
+import net.cattaka.android.ultimatetank.usb.UsbClass;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -21,10 +23,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
-
-import net.cattaka.android.ultimatetank.R;
-import net.cattaka.android.ultimatetank.usb.UsbClass;
 
 public class ConnectFragment extends BaseFragment implements OnItemClickListener {
     private ListView mUsbDeviceList;
@@ -134,8 +132,7 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
         } else {
             if (usbman.hasPermission(usbDevice)) {
                 // OK
-                // TODO
-                Toast.makeText(getContext(), "OK", Toast.LENGTH_SHORT).show();
+                getBaseFragmentAdapter().startConnectionThread(usbDevice);
             } else {
                 // requests permission to use device
                 PendingIntent pIntent = PendingIntent.getBroadcast(getContext(), 0, new Intent(

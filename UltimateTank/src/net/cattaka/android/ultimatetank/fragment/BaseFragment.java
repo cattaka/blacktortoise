@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.usb.UsbDevice;
 
 /**
  * This class abstract activity's functions so that avoid casting activity to
@@ -20,6 +21,8 @@ public class BaseFragment extends Fragment {
         public Intent registerReceiver(BroadcastReceiver receiver, IntentFilter filter);
 
         public void unregisterReceiver(BroadcastReceiver receiver);
+
+        public void startConnectionThread(UsbDevice usbDevice);
     }
 
     public IBaseFragmentAdapter getBaseFragmentAdapter() {
@@ -38,5 +41,10 @@ public class BaseFragment extends Fragment {
     /** Do only delegation */
     public void unregisterReceiver(BroadcastReceiver receiver) {
         getActivity().unregisterReceiver(receiver);
+    }
+
+    /** Do only delegation */
+    public void connectUsbDevice(UsbDevice usbDevice) {
+        getBaseFragmentAdapter().startConnectionThread(usbDevice);
     }
 }

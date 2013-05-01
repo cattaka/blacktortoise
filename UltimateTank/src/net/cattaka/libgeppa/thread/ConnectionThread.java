@@ -204,10 +204,13 @@ public class ConnectionThread<T extends IPacket> {
         mThread.join();
     }
 
-    public void sendPacket(T packet) {
+    public boolean sendPacket(T packet) {
         // note : mInnerHandler is exactly not null because it uses semaphore.
         if (mLastConnectionState == ConnectionState.CONNECTED) {
             mInnerHandler.obtainMessage(EVENT_SEND, packet).sendToTarget();
+            return true;
+        } else {
+            return false;
         }
     }
 }

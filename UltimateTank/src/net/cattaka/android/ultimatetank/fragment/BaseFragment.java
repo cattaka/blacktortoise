@@ -2,6 +2,7 @@
 package net.cattaka.android.ultimatetank.fragment;
 
 import net.cattaka.android.ultimatetank.net.data.MyPacket;
+import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
 import net.cattaka.libgeppa.data.ConnectionCode;
 import net.cattaka.libgeppa.data.ConnectionState;
 import net.cattaka.libgeppa.thread.IConnectionThreadListener;
@@ -29,6 +30,8 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
         public void startConnectionThread(UsbDevice usbDevice);
 
         public void replacePrimaryFragment(Fragment fragment, boolean withBackStack);
+
+        public ICommandAdapter getCommandAdapter();
     }
 
     public IBaseFragmentAdapter getBaseFragmentAdapter() {
@@ -69,5 +72,9 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
     /** Do only delegation */
     public void replacePrimaryFragment(Fragment fragment, boolean withBackStack) {
         getBaseFragmentAdapter().replacePrimaryFragment(fragment, withBackStack);
+    }
+
+    public ICommandAdapter getCommandAdapter() {
+        return getBaseFragmentAdapter().getCommandAdapter();
     }
 }

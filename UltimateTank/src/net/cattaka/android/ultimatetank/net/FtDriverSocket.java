@@ -43,22 +43,23 @@ public class FtDriverSocket implements IRawSocket {
     }
 
     private class OutputStreamEx extends OutputStream {
-        private byte[] buf = new byte[1];
+        private int mBufIdx;
+
+        private byte[] mBuf = new byte[1 << 12];
 
         @Override
         public void write(int oneByte) throws IOException {
-            buf[0] = (byte)oneByte;
-            mFtDriver.write(buf);
+            mBuf[mBufIdx++] = (byte)oneByte;
+            if (mBufIdx == mBuf.length) {
+                flush();
+            }
         }
 
         @Override
-        public void write(byte[] buffer) throws IOException {
-            mFtDriver.write(buffer);
-        }
-
-        @Override
-        public void write(byte[] buffer, int offset, int count) throws IOException {
-            throw new NotImplementedException();
+        public void flush() throws IOException {
+            super.flush();
+            mFtDriver.write(mBuf, mBufIdx);
+            mBufIdx = 0;
         }
     }
 

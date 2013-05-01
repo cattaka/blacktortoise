@@ -3,11 +3,8 @@ package net.cattaka.android.ultimatetank.net.data;
 
 public enum OpCode {
     ECHO((byte)0), //
-    SERVO_ANGLES((byte)1), //
-    EYE_LEDS((byte)2), //
-    POSE((byte)3), //
-    REQ_ACCEL((byte)4), //
-    RES_ACCEL((byte)5), //
+    MOVE((byte)1), //
+    HEAD((byte)2), //
     UNKNOWN((byte)-1);
 
     private byte value;

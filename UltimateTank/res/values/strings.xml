@@ -3,13 +3,14 @@
 
     <string name="app_name">UltimateTank</string>
     <string name="action_settings">Settings</string>
-
     <string name="title_select_usb_device">Select USB device</string>
     <string name="title_main_menu">Main menu</string>
 
-
     <string name="btn_validation">Validation</string>
-
+    <string name="btn_send">Send</string>
+    <string name="btn_clear">Clear</string>
 
     <string name="msg_now_connecting">Now connecting</string>
+    <string name="msg_echo">Echo</string>
+
 </resources>

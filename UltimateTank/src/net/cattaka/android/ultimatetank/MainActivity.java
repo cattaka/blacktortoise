@@ -5,12 +5,13 @@ import jp.ksksue.driver.serial.FTDriver;
 import net.cattaka.android.ultimatetank.fragment.BaseFragment;
 import net.cattaka.android.ultimatetank.fragment.BaseFragment.IBaseFragmentAdapter;
 import net.cattaka.android.ultimatetank.fragment.ConnectFragment;
+import net.cattaka.android.ultimatetank.net.MyConnectionThread;
 import net.cattaka.android.ultimatetank.net.MySocketPrepareTask;
 import net.cattaka.android.ultimatetank.net.data.MyPacket;
 import net.cattaka.android.ultimatetank.net.data.MyPacketFactory;
+import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
 import net.cattaka.libgeppa.data.ConnectionCode;
 import net.cattaka.libgeppa.data.ConnectionState;
-import net.cattaka.libgeppa.thread.ConnectionThread;
 import net.cattaka.libgeppa.thread.IConnectionThreadListener;
 import android.app.Activity;
 import android.app.Fragment;
@@ -28,7 +29,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
 
     private FTDriver mFtDriver;
 
-    private ConnectionThread<MyPacket> mConnectionThread;
+    private MyConnectionThread mConnectionThread;
 
     private UsbDevice mCurrentUsbDevice;
 
@@ -130,7 +131,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
         MySocketPrepareTask prepareTask = new MySocketPrepareTask(mFtDriver);
         MyPacketFactory packetFactory = new MyPacketFactory();
 
-        mConnectionThread = new ConnectionThread<MyPacket>(prepareTask, packetFactory,
+        mConnectionThread = new MyConnectionThread(prepareTask, packetFactory,
                 mConnectionThreadListener);
 
         try {
@@ -161,5 +162,10 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
         }
         ft.replace(R.id.primaryFragment, fragment);
         ft.commit();
+    }
+
+    @Override
+    public ICommandAdapter getCommandAdapter() {
+        return mConnectionThread;
     }
 }

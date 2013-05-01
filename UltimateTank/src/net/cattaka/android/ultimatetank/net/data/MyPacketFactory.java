@@ -109,7 +109,7 @@ public class MyPacketFactory implements IPacketFactory<MyPacket> {
         out.write(len1);
         out.write(len2);
         out.write(t);
-        out.write(packet.getData());
+        out.write(packet.getData(), 0, packet.getDataLen());
         out.write(ETX);
     }
 }

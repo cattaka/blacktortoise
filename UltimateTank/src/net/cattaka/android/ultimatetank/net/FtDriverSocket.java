@@ -11,15 +11,22 @@ import net.cattaka.libgeppa.IRawSocket;
 
 public class FtDriverSocket implements IRawSocket {
     private class InputStreamEx extends InputStream {
-        private byte[] buf = new byte[1];
+        private byte[] buf = new byte[64];
+
+        private int bufReaded = 0;
+
+        private int bufIdx = 0;
 
         private boolean closed = false;
 
         @Override
         public int read() throws IOException {
             while (mFtDriver.isConnected() && !closed) {
-                if (mFtDriver.read(buf) > 0) {
-                    return 0xFF & buf[0];
+                if (bufIdx < bufReaded) {
+                    return (0xFF) & buf[bufIdx++];
+                } else {
+                    bufIdx = 0;
+                    bufReaded = mFtDriver.read(buf);
                 }
             }
             return -1;

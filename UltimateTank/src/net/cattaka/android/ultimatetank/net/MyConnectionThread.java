@@ -38,7 +38,7 @@ public class MyConnectionThread extends ConnectionThread<MyPacket> implements IC
     public boolean sendHead(float yaw, float pitch) {
         mBuffer[0] = (byte)(0xFF * yaw);
         mBuffer[1] = (byte)(0xFF * pitch);
-        MyPacket packet = new MyPacket(OpCode.MOVE, 2, mBuffer);
+        MyPacket packet = new MyPacket(OpCode.HEAD, 2, mBuffer);
         return sendPacket(packet);
     }
 

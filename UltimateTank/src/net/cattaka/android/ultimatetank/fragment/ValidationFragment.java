@@ -99,4 +99,16 @@ public class ValidationFragment extends BaseFragment implements OnClickListener 
         }
 
     }
+
+    @Override
+    public void onReceive(MyPacket packet) {
+        super.onReceive(packet);
+        if (packet.getOpCode() == OpCode.ECHO) {
+            byte[] data = new byte[packet.getDataLen()];
+            System.arraycopy(packet.getData(), 0, data, 0, data.length);
+            String str = new String(data);
+            TextView receivedText = (TextView)getView().findViewById(R.id.receivedText);
+            receivedText.setText(receivedText.getText() + str);
+        }
+    }
 }

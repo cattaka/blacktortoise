@@ -1,6 +1,10 @@
 
 package net.cattaka.android.ultimatetank.fragment;
 
+import net.cattaka.android.ultimatetank.net.data.MyPacket;
+import net.cattaka.libgeppa.data.ConnectionCode;
+import net.cattaka.libgeppa.data.ConnectionState;
+import net.cattaka.libgeppa.thread.IConnectionThreadListener;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,7 +18,7 @@ import android.hardware.usb.UsbDevice;
  * 
  * @author cattaka
  */
-public class BaseFragment extends Fragment {
+public class BaseFragment extends Fragment implements IConnectionThreadListener<MyPacket> {
     public interface IBaseFragmentAdapter {
         public Object getSystemService(String name);
 
@@ -23,6 +27,8 @@ public class BaseFragment extends Fragment {
         public void unregisterReceiver(BroadcastReceiver receiver);
 
         public void startConnectionThread(UsbDevice usbDevice);
+
+        public void replacePrimaryFragment(Fragment fragment, boolean withBackStack);
     }
 
     public IBaseFragmentAdapter getBaseFragmentAdapter() {
@@ -31,6 +37,18 @@ public class BaseFragment extends Fragment {
 
     public Context getContext() {
         return getActivity();
+    }
+
+    /** Please override if you need. */
+    @Override
+    public void onConnectionStateChanged(ConnectionState state, ConnectionCode code) {
+        // none
+    }
+
+    /** Please override if you need. */
+    @Override
+    public void onReceive(MyPacket packet) {
+        // none
     }
 
     /** Do only delegation */
@@ -46,5 +64,10 @@ public class BaseFragment extends Fragment {
     /** Do only delegation */
     public void connectUsbDevice(UsbDevice usbDevice) {
         getBaseFragmentAdapter().startConnectionThread(usbDevice);
+    }
+
+    /** Do only delegation */
+    public void replacePrimaryFragment(Fragment fragment, boolean withBackStack) {
+        getBaseFragmentAdapter().replacePrimaryFragment(fragment, withBackStack);
     }
 }

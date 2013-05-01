@@ -8,6 +8,8 @@ import java.util.Map.Entry;
 
 import net.cattaka.android.ultimatetank.R;
 import net.cattaka.android.ultimatetank.usb.UsbClass;
+import net.cattaka.libgeppa.data.ConnectionCode;
+import net.cattaka.libgeppa.data.ConnectionState;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -139,6 +141,15 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
                         ACTION_USB_PERMISSION), 0);
                 usbman.requestPermission(usbDevice, pIntent);
             }
+        }
+    }
+
+    @Override
+    public void onConnectionStateChanged(ConnectionState state, ConnectionCode code) {
+        super.onConnectionStateChanged(state, code);
+        if (state == ConnectionState.CONNECTED) {
+            MainMenuFragment nextFragment = new MainMenuFragment();
+            replacePrimaryFragment(nextFragment, false);
         }
     }
 }

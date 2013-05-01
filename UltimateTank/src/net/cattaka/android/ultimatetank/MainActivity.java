@@ -2,7 +2,9 @@
 package net.cattaka.android.ultimatetank;
 
 import jp.ksksue.driver.serial.FTDriver;
+import net.cattaka.android.ultimatetank.fragment.BaseFragment;
 import net.cattaka.android.ultimatetank.fragment.BaseFragment.IBaseFragmentAdapter;
+import net.cattaka.android.ultimatetank.fragment.ConnectFragment;
 import net.cattaka.android.ultimatetank.net.MySocketPrepareTask;
 import net.cattaka.android.ultimatetank.net.data.MyPacket;
 import net.cattaka.android.ultimatetank.net.data.MyPacketFactory;
@@ -11,6 +13,9 @@ import net.cattaka.libgeppa.data.ConnectionState;
 import net.cattaka.libgeppa.thread.ConnectionThread;
 import net.cattaka.libgeppa.thread.IConnectionThreadListener;
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
@@ -19,6 +24,8 @@ import android.view.Menu;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements IBaseFragmentAdapter {
+    private MainActivity me = this;
+
     private FTDriver mFtDriver;
 
     private ConnectionThread<MyPacket> mConnectionThread;
@@ -26,15 +33,46 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     private UsbDevice mCurrentUsbDevice;
 
     private IConnectionThreadListener<MyPacket> mConnectionThreadListener = new IConnectionThreadListener<MyPacket>() {
+        private ProgressDialog nowConnectiondDialog;
 
         @Override
         public void onReceive(MyPacket packet) {
-            // TODO Auto-generated method stub
-
+            { // Notifies event to child fragment
+                Fragment fragment = getFragmentManager().findFragmentById(R.id.primaryFragment);
+                if (fragment instanceof BaseFragment) {
+                    ((BaseFragment)fragment).onReceive(packet);
+                } else {
+                    // impossible
+                }
+            }
         }
 
         @Override
         public void onConnectionStateChanged(ConnectionState state, ConnectionCode code) {
+            if (state == ConnectionState.CONNECTING) {
+                if (nowConnectiondDialog == null) {
+                    nowConnectiondDialog = new ProgressDialog(me);
+                    nowConnectiondDialog.setMessage(me.getText(R.string.msg_now_connecting));
+                    nowConnectiondDialog.show();
+                }
+            } else // if (state == ConnectionState.CONNECTED || state ==
+                   // ConnectionState.CLOSED)
+            {
+                if (nowConnectiondDialog != null) {
+                    nowConnectiondDialog.dismiss();
+                    nowConnectiondDialog = null;
+                }
+            }
+            { // Notifies event to child fragment
+                Fragment fragment = getFragmentManager().findFragmentById(R.id.primaryFragment);
+                if (fragment instanceof BaseFragment) {
+                    ((BaseFragment)fragment).onConnectionStateChanged(state, code);
+                } else {
+                    // impossible
+                }
+            }
+
+            // TODO delete this toast.
             Toast.makeText(MainActivity.this, "ConnectionState:" + state, Toast.LENGTH_SHORT)
                     .show();
         }
@@ -44,6 +82,16 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (getFragmentManager().findFragmentById(R.id.primaryFragment) == null) {
+            ConnectFragment fragment = new ConnectFragment();
+            FragmentTransaction ft = getFragmentManager().beginTransaction();
+
+            ft.add(R.id.primaryFragment, fragment);
+
+            // トランザクションをコミットする
+            ft.commit();
+        }
     }
 
     @Override
@@ -103,5 +151,15 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
             }
             mConnectionThread = null;
         }
+    }
+
+    @Override
+    public void replacePrimaryFragment(Fragment fragment, boolean withBackStack) {
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        if (withBackStack) {
+            ft.addToBackStack(null);
+        }
+        ft.replace(R.id.primaryFragment, fragment);
+        ft.commit();
     }
 }

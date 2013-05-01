@@ -8,8 +8,8 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
-    <fragment
-        android:name="net.cattaka.android.ultimatetank.fragment.ConnectFragment"
+    <FrameLayout
+        android:id="@+id/primaryFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:tag="primaryFragment" />

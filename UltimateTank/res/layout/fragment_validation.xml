@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:ignore="ContentDescription,SelectableText" >
+
+    <ImageView
+        android:id="@+id/controller_move"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/controller_move" />
+
+    <ImageView
+        android:id="@+id/controller_head"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/controller_head" />
+
+    <TextView
+        android:id="@+id/head_value_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/controller_head"
+        android:layout_alignLeft="@+id/controller_head"
+        android:layout_alignRight="@+id/controller_head" />
+
+    <TextView
+        android:id="@+id/move_value_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/controller_move"
+        android:layout_alignLeft="@+id/controller_move"
+        android:layout_alignRight="@+id/controller_move" />
+
+</RelativeLayout>

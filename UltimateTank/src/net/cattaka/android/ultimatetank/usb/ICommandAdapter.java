@@ -11,12 +11,13 @@ public interface ICommandAdapter {
     public boolean sendPacket(MyPacket packet);
 
     /**
-     * @param forward If 0 is given it moves forward. If 1 is given it moves
-     *            forward.
-     * @param side If 0 is given it turn left. If 1 is given it moves right.
+     * @param leftMotor1 Input value 1 of left motor's driver
+     * @param leftMotor2 Input value 2 of left motor's driver
+     * @param rightMotor1 Input value 1 of right motor's driver
+     * @param rightMotor2 Input value 2 of right motor's driver
      * @return If putting to queue is succeed it returns true, otherwise false.
      */
-    public boolean sendMove(float forward, float side);
+    public boolean sendMove(float leftMotor1, float leftMotor2, float rightMotor1, float rightMotor2);
 
     /**
      * @param yaw If 0 is given it turns left. If 1 is given it turns right.

@@ -27,17 +27,19 @@ public class MyConnectionThread extends ConnectionThread<MyPacket> implements IC
     }
 
     @Override
-    public boolean sendMove(float forward, float side) {
-        mBuffer[0] = (byte)(0xFF * forward);
-        mBuffer[1] = (byte)(0xFF * side);
-        MyPacket packet = new MyPacket(OpCode.MOVE, 2, mBuffer);
+    public boolean sendMove(float leftMotor1, float leftMotor2, float rightMotor1, float rightMotor2) {
+        mBuffer[0] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * leftMotor1)));
+        mBuffer[1] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * leftMotor2)));
+        mBuffer[2] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * rightMotor1)));
+        mBuffer[3] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * rightMotor2)));
+        MyPacket packet = new MyPacket(OpCode.MOVE, 4, mBuffer);
         return sendPacket(packet);
     }
 
     @Override
     public boolean sendHead(float yaw, float pitch) {
-        mBuffer[0] = (byte)(0xFF * yaw);
-        mBuffer[1] = (byte)(0xFF * pitch);
+        mBuffer[0] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * yaw)));
+        mBuffer[1] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * pitch)));
         MyPacket packet = new MyPacket(OpCode.HEAD, 2, mBuffer);
         return sendPacket(packet);
     }

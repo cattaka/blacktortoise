@@ -8,6 +8,7 @@ import net.cattaka.android.ultimatetank.R;
 import net.cattaka.android.ultimatetank.net.data.MyPacket;
 import net.cattaka.android.ultimatetank.net.data.OpCode;
 import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
+import net.cattaka.android.ultimatetank.util.CommandAdapterUtil;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.LayoutInflater;
@@ -30,8 +31,12 @@ public class ValidationFragment extends BaseFragment implements OnClickListener 
             if (v.getId() == R.id.controller_head) {
                 long t = SystemClock.elapsedRealtime();
                 if (t - lastSendHeadTime > 100 || event.getActionMasked() == MotionEvent.ACTION_UP) {
+                    float yaw = (rx * 2 - 1);
+                    float pitch = (ry * 2 - 1);
+                    ;
                     { // Displayes values on TextView
-                        String text = String.format(Locale.getDefault(), "(%.2f,%.2f)", rx, ry);
+                        String text = String.format(Locale.getDefault(), "(yaw,pitch)=(%.2f,%.2f)",
+                                yaw, pitch);
                         mHeadValueText.setText(text);
                     }
                     { // Sends command
@@ -45,14 +50,17 @@ public class ValidationFragment extends BaseFragment implements OnClickListener 
             } else if (v.getId() == R.id.controller_move) {
                 long t = SystemClock.elapsedRealtime();
                 if (t - lastSendMoveTime > 100 || event.getActionMasked() == MotionEvent.ACTION_UP) {
+                    float forward = -(ry * 2 - 1);
+                    float turn = rx * 2 - 1;
                     { // Displayes values on TextView
-                        String text = String.format(Locale.getDefault(), "(%.2f,%.2f)", rx, ry);
+                        String text = String.format(Locale.getDefault(),
+                                "(forward,turn)=(%.2f,%.2f)", forward, turn);
                         mMoveValueText.setText(text);
                     }
                     { // Sends command
                         ICommandAdapter adapter = getCommandAdapter();
                         if (adapter != null) {
-                            adapter.sendMove(ry, rx);
+                            CommandAdapterUtil.sendMove(adapter, forward, turn);
                         }
                     }
                     lastSendMoveTime = t;

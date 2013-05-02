@@ -15,7 +15,7 @@ public class MySocketPrepareTask implements IRawSocketPrepareTask {
 
     @Override
     public IRawSocket prepareRawSocket() {
-        if (mFtDriver.begin(FTDriver.BAUD19200)) {
+        if (mFtDriver.begin(FTDriver.BAUD115200)) {
             return new FtDriverSocket(mFtDriver);
         } else {
             return null;

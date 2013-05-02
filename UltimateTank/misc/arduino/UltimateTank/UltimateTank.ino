@@ -4,38 +4,44 @@
 
 // =============================
 // Debug setting
-#define DUMP_RAW
-#define DUMP_PACKET
+//#define DEBUG_CONSOLE_DUMP_RAW
+//#define DEBUG_CONSOLE_DUMP_PACKET
+//#define USE_DEBUG_CONSOLE
 
 // =============================
-// variables for RBT-001
-#define DUMP_RX A3
-#define DUMP_TX A4
-#define DUMP_CTS          A5
-SoftwareSerial g_dump(DUMP_RX, DUMP_TX);
+// Constants for debug console
+#define DEBUG_CONSOLE_RX A0
+#define DEBUG_CONSOLE_TX A1
+#ifdef DEBUG_CONSOLE_DUMP_PACKET
+SoftwareSerial g_debug(DEBUG_CONSOLE_RX, DEBUG_CONSOLE_TX);
+#endif
 // =============================
 
 // =============================
+// Constants for servos
 #define SERVO_NUM 2
 #define SERVO_YAW   7
-#define SERVO_PITCH  6
+#define SERVO_PITCH  8
+// =============================
 
-#define MOTOR_PIN_NUM 4
-#define MOTOR_LEFT   2
-#define MOTOR_LEFT_REV   3
-#define MOTOR_RIGHT  4
-#define MOTOR_RIGHT_REV  5
+// =============================
+// Constants for twin motors
+#define MOTOR_PIN_NUM     4
+#define MOTOR_LEFT        5
+#define MOTOR_LEFT_REV    6
+#define MOTOR_RIGHT       9
+#define MOTOR_RIGHT_REV  10
+// =============================
 
-#define LED_EYE_LEFT     9
-#define LED_EYE_RIGHT    8
+// =============================
+// Constants for LEDS
+#define LED_0    2
+#define LED_1    3
+#define LED_2    4
+// =============================
 
-#define PIN_ACCEL_X A0
-#define PIN_ACCEL_Y A1
-#define PIN_ACCEL_Z A2
-#define OFFSET_ACCEL_X 0
-#define OFFSET_ACCEL_Y 0
-#define OFFSET_ACCEL_Z 0
-
+// =============================
+// Valiables
 struct MotorPin {
   int pin;
   unsigned char value;
@@ -63,6 +69,7 @@ void initMyServo(int idx, int pin, int pulseMin, int pulseMax, long initValue, l
   myServos[idx].servo.setMaximumPulse(pulseMax);
 }
 void initMotorPin(int idx, int pin) {
+  pinMode(pin, OUTPUT);
   motorPins[idx].pin = pin;
   motorPins[idx].value = 0;
 }
@@ -73,68 +80,56 @@ Geppa g_geppa(handleRecvPacket);
 
 void setup()
 {
-  // ボーレートを指定して通信開始
-  Serial.begin(19200);
-  g_dump.begin(9600);
-  g_dump.println("Serial connected");
-  pinMode(DUMP_CTS, OUTPUT);
-  pinMode(LED_EYE_LEFT, OUTPUT);
-  pinMode(LED_EYE_RIGHT, OUTPUT);
-  pinMode(MOTOR_LEFT, OUTPUT);
-  pinMode(MOTOR_RIGHT, OUTPUT);
-
-  {
+  {  // Initializing serial
+  Serial.begin(115200);
+  }
+  {  // Initializing debug console
+#ifdef DEBUG_CONSOLE_DUMP_PACKET
+    g_debug.begin(9600);
+    g_debug.println("Started");
+#endif
+  }
+  {  // Initalizing LEDs
+    pinMode(LED_0, OUTPUT);
+    pinMode(LED_1, OUTPUT);
+    pinMode(LED_2, OUTPUT);
+  }
+  {  // Initializing servos
     initMyServo(0, SERVO_YAW,   550, 2350, 0x7F, 0xFF);
     initMyServo(1, SERVO_PITCH,  550, 2350, 0x7F, 0xFF);
   }
-  {
+  {  // Initializing motors
     initMotorPin(0, MOTOR_LEFT);
     initMotorPin(1, MOTOR_LEFT_REV);
     initMotorPin(2, MOTOR_RIGHT);
     initMotorPin(3, MOTOR_RIGHT_REV);
   }
-  {
-    pinMode(PIN_ACCEL_X, INPUT);
-    pinMode(PIN_ACCEL_Y, INPUT);
-    pinMode(PIN_ACCEL_Z, INPUT);
-  }
 }
 
 void loop()
 {
-  // データ受信
-  digitalWrite(DUMP_CTS, LOW);
-  while(Serial.available() > 0) {
-    unsigned char c = Serial.read();
-    g_geppa.feedData(c);
-#ifdef DUMP_RAW
-    g_dump.print(' ');
-    g_dump.print(c, HEX);
-    g_dump.print('-');
-    g_dump.print(g_geppa.state, HEX);
-#endif
-  }
-  digitalWrite(DUMP_CTS, HIGH);
-  {  // Sending the data received from Serial to g_dump for debug.
-    if (g_dump.available() > 0) {
-      while (g_dump.available() > 0) {
-        unsigned char c = g_dump.read();
-#ifdef DUMP_RAW
-        g_dump.print(' ');
-        g_dump.print(c, HEX);
-#endif
-        Serial.write(c);
-      }
-#ifdef DUMP_RAW
-      g_dump.print("\nstate=");
-      g_dump.print(g_geppa.state, DEC);
-      g_dump.print("\nlen=");
-      g_dump.print(g_geppa.len, DEC);
-      g_dump.print("\n");
+  {  // Receive data from serial
+    while(Serial.available() > 0) {
+      unsigned char c = Serial.read();
+      g_geppa.feedData(c);
+#ifdef DEBUG_CONSOLE_DUMP_RAW
+      g_debug.print(' ');
+      g_debug.print(c, HEX);
+      g_debug.print('-');
+      g_debug.print(g_geppa.state, HEX);
 #endif
     }
   }
-
+  {  // Receive data from debug console.
+#ifdef USE_DEBUG_CONSOLE
+    if (g_debug.available() > 0) {
+      while (g_debug.available() > 0) {
+        unsigned char c = g_debug.read();
+        g_geppa.feedData(c);
+      }
+    }
+#endif
+  }
   {  // Controlling servo angles
     for (int i=0;i<SERVO_NUM;i++) {
       long targetValue = myServos[i].value;
@@ -150,34 +145,33 @@ void loop()
       int val = map(myServos[i].currentValue, 0, 0xFF, 0, 180);
       myServos[i].servo.write(val);
     }
+    SoftwareServo::refresh();
   }
-  {
-    unsigned char t = ((micros()/10) % 0x100);
+  {  // Controlling motors
     for (int i=0;i<MOTOR_PIN_NUM;i++) {
-      digitalWrite(motorPins[i].pin, (motorPins[i].value > t) ? HIGH : LOW);
+      analogWrite(motorPins[i].pin, motorPins[i].value);
     }
   }
-  SoftwareServo::refresh();
   delay(10);
 }
 
 void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLen, unsigned char* data) {
-#ifdef DUMP_PACKET
-  g_dump.print('(');
-  g_dump.print(packetType, HEX);
-  g_dump.print(',');
-  g_dump.print(opCode, HEX);
-  g_dump.print(',');
-  g_dump.print(dataLen, HEX);
-  g_dump.print(',');
+#ifdef DEBUG_CONSOLE_DUMP_PACKET
+  g_debug.print('(');
+  g_debug.print(packetType, HEX);
+  g_debug.print(',');
+  g_debug.print(opCode, HEX);
+  g_debug.print(',');
+  g_debug.print(dataLen, HEX);
+  g_debug.print(',');
   for (int i=0;i<dataLen;i++) {
     if (data[i] < 0x10) {
-      g_dump.print('0');
+      g_debug.print('0');
     }
-    g_dump.print(data[i], HEX);
+    g_debug.print(data[i], HEX);
   }
-  g_dump.print(')');
-  g_dump.print('\n');
+  g_debug.print(')');
+  g_debug.print('\n');
 #endif
   if (packetType == 0x01) {
     if (opCode == 0) {
@@ -197,18 +191,22 @@ void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLe
     } 
     else if (opCode == 1) {
       // MOTER
-      if (dataLen != 2) {
-        g_dump.print("dataLen is not MOTOR_NUM.\n");
+      if (dataLen != MOTOR_PIN_NUM) {
+#ifdef DEBUG_CONSOLE_DUMP_PACKET
+        g_debug.print("dataLen is not MOTOR_PIN_NUM.\n");
+#endif
       } else {
         motorPins[0].value = data[0];
         motorPins[1].value = data[1];
-        motorPins[2].value = data[0];
-        motorPins[3].value = data[1];
+        motorPins[2].value = data[2];
+        motorPins[3].value = data[3];
       }
     } else if (opCode == 2) {
       // SERVO_HEAD
       if (dataLen != SERVO_NUM) {
-        g_dump.print("dataLen is not SERVO_NUM.\n");
+#ifdef DEBUG_CONSOLE_DUMP_PACKET
+        g_debug.print("dataLen is not SERVO_NUM.\n");
+#endif
       } 
       else {
         for (int i=0;i<SERVO_NUM;i++) {
@@ -216,17 +214,18 @@ void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLe
         }
       }
     }
-    /*
     else if (opCode == 2) {
-      // EYE_LED
+      // EYE_LEDS
       unsigned char val = data[0];
-      digitalWrite(LED_EYE_LEFT, (val & 1) ? HIGH:LOW);
-      digitalWrite(LED_EYE_RIGHT, (val & 2) ? HIGH:LOW);
+      digitalWrite(LED_0, (val & 1) ? HIGH:LOW);
+      digitalWrite(LED_1, (val & 2) ? HIGH:LOW);
+      digitalWrite(LED_2, (val & 4) ? HIGH:LOW);
     } 
+    /*
     else if (opCode == 3) {
       // POSE
       if (dataLen != SERVO_NUM + 3) {
-        g_dump.print("dataLen is not (SERVO_NUM + 2 + 1).\n");
+        g_debug.print("dataLen is not (SERVO_NUM + 2 + 1).\n");
       } 
       else {
         int flags = (int)data[0] | (((int)data[1]) << 8);
@@ -234,11 +233,11 @@ void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLe
         for (int i=0;i<SERVO_NUM;i++) {
           if (flags & (1<<i)) {
             myServos[i].value = data[i+2];
-            g_dump.print("Servo idx=");
-            g_dump.print(i, DEC);
-            g_dump.print(", value=");
-            g_dump.print(myServos[i].value, HEX);
-            g_dump.print("\n");
+            g_debug.print("Servo idx=");
+            g_debug.print(i, DEC);
+            g_debug.print(", value=");
+            g_debug.print(myServos[i].value, HEX);
+            g_debug.print("\n");
           }
         }
         if (flags & (1<<SERVO_NUM)) {
@@ -248,7 +247,7 @@ void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLe
       }
     } 
     else if (opCode == 4) {
-      g_dump.print("OK\n");
+      g_debug.print("OK\n");
       // REQ_ACCEL
       int x = (analogRead(PIN_ACCEL_X) - OFFSET_ACCEL_X);
       int y = (analogRead(PIN_ACCEL_Y) - OFFSET_ACCEL_Y);
@@ -272,39 +271,39 @@ void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLe
       for (int i=0;i<n;i++) {
         Serial.write(data[i]);
       }
-      //g_dump.print("(");
-      //g_dump.print(x, DEC);
-      //g_dump.print(",");
-      //g_dump.print(y, DEC);
-      //g_dump.print(",");
-      //g_dump.print(z, DEC);
-      //g_dump.print(")\n");
+      //g_debug.print("(");
+      //g_debug.print(x, DEC);
+      //g_debug.print(",");
+      //g_debug.print(y, DEC);
+      //g_debug.print(",");
+      //g_debug.print(z, DEC);
+      //g_debug.print(")\n");
     }
   } 
   else if (packetType == 0x69) {
     // The message from RBT-001
     if (opCode == 0x11) {
-      g_dump.print("Transparent mode is started:");
-      g_dump.print(data[0], HEX);
-      g_dump.print(":");
-      g_dump.print(data[1], HEX);
-      g_dump.print("\n");
+      g_debug.print("Transparent mode is started:");
+      g_debug.print(data[0], HEX);
+      g_debug.print(":");
+      g_debug.print(data[1], HEX);
+      g_debug.print("\n");
     }
     else if (opCode == 0x0C) {
       digitalWrite(LED_EYE_LEFT, HIGH);
       digitalWrite(LED_EYE_RIGHT, HIGH);
-      g_dump.print("Bluetooth connection is established.");
-      g_dump.print("\n");
+      g_debug.print("Bluetooth connection is established.");
+      g_debug.print("\n");
     }
     else if (opCode == 0x0E) {
       digitalWrite(LED_EYE_LEFT, LOW);
       digitalWrite(LED_EYE_RIGHT, LOW);
-      g_dump.print("SPP Link released.");
-      g_dump.print("\n");
+      g_debug.print("SPP Link released.");
+      g_debug.print("\n");
     } 
     else if (opCode == 0x10) {
       // End UART break mode
-      g_dump.print("End UART break mode.\n");
+      g_debug.print("End UART break mode.\n");
       byte data[] = {
         0x02,
         0x52,

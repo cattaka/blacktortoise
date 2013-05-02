@@ -31,6 +31,8 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
 
     protected static final String ACTION_USB_PERMISSION = "net.cattaka.android.ultimatetank.fragment.action_permission";
 
+    protected static final String EXTRA_USB_DEVICE_KEY = "usbDevicekey";
+
     private static class ListItem {
         String label;
 
@@ -57,6 +59,10 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
                 refleshUsbDeviceList();
             } else if (intent.getAction().equals(ACTION_USB_PERMISSION)) {
                 refleshUsbDeviceList();
+                String itemKey = intent.getStringExtra(EXTRA_USB_DEVICE_KEY);
+                if (itemKey != null) {
+                    onSelectItem(itemKey);
+                }
             }
         }
     };
@@ -81,6 +87,7 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
             IntentFilter filter = new IntentFilter();
             filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
             filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+            filter.addAction(ACTION_USB_PERMISSION);
             registerReceiver(mUsbReceiver, filter);
         }
     }
@@ -119,15 +126,15 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
 
         if (parent.getId() == R.id.usbDeviceList) {
             ListItem item = (ListItem)mUsbDeviceList.getItemAtPosition(position);
-            onSelectItem(item);
+            onSelectItem(item.key);
         }
     }
 
-    private void onSelectItem(ListItem item) {
+    private void onSelectItem(String itemKey) {
         UsbManager usbman = (UsbManager)getBaseFragmentAdapter().getSystemService(
                 Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceMap = usbman.getDeviceList();
-        UsbDevice usbDevice = deviceMap.get(item.key);
+        UsbDevice usbDevice = deviceMap.get(itemKey);
         if (usbDevice == null) {
             // Unexpected behavior
             refleshUsbDeviceList();
@@ -137,8 +144,9 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
                 getBaseFragmentAdapter().startConnectionThread(usbDevice);
             } else {
                 // requests permission to use device
-                PendingIntent pIntent = PendingIntent.getBroadcast(getContext(), 0, new Intent(
-                        ACTION_USB_PERMISSION), 0);
+                Intent intent = new Intent(ACTION_USB_PERMISSION);
+                intent.putExtra(EXTRA_USB_DEVICE_KEY, itemKey);
+                PendingIntent pIntent = PendingIntent.getBroadcast(getContext(), 0, intent, 0);
                 usbman.requestPermission(usbDevice, pIntent);
             }
         }

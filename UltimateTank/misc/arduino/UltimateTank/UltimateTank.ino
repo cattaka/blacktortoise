@@ -27,17 +27,16 @@ SoftwareSerial g_debug(DEBUG_CONSOLE_RX, DEBUG_CONSOLE_TX);
 // =============================
 // Constants for twin motors
 #define MOTOR_PIN_NUM     4
-#define MOTOR_LEFT        5
-#define MOTOR_LEFT_REV    6
-#define MOTOR_RIGHT       9
-#define MOTOR_RIGHT_REV  10
+#define MOTOR_LEFT        3
+#define MOTOR_LEFT_REV    5
+#define MOTOR_RIGHT       6
+#define MOTOR_RIGHT_REV   9
 // =============================
 
 // =============================
 // Constants for LEDS
 #define LED_0    2
-#define LED_1    3
-#define LED_2    4
+#define LED_1    4
 // =============================
 
 // =============================
@@ -92,7 +91,6 @@ void setup()
   {  // Initalizing LEDs
     pinMode(LED_0, OUTPUT);
     pinMode(LED_1, OUTPUT);
-    pinMode(LED_2, OUTPUT);
   }
   {  // Initializing servos
     initMyServo(0, SERVO_YAW,   550, 2350, 0x7F, 0xFF);
@@ -188,7 +186,7 @@ void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLe
         Serial.write(data[i]);
       }
       Serial.write(0x03);
-    } 
+    }
     else if (opCode == 1) {
       // MOTER
       if (dataLen != MOTOR_PIN_NUM) {
@@ -207,7 +205,7 @@ void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLe
 #ifdef DEBUG_CONSOLE_DUMP_PACKET
         g_debug.print("dataLen is not SERVO_NUM.\n");
 #endif
-      } 
+      }
       else {
         for (int i=0;i<SERVO_NUM;i++) {
           myServos[i].value = data[i];
@@ -219,14 +217,13 @@ void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLe
       unsigned char val = data[0];
       digitalWrite(LED_0, (val & 1) ? HIGH:LOW);
       digitalWrite(LED_1, (val & 2) ? HIGH:LOW);
-      digitalWrite(LED_2, (val & 4) ? HIGH:LOW);
-    } 
+    }
     /*
     else if (opCode == 3) {
       // POSE
       if (dataLen != SERVO_NUM + 3) {
         g_debug.print("dataLen is not (SERVO_NUM + 2 + 1).\n");
-      } 
+      }
       else {
         int flags = (int)data[0] | (((int)data[1]) << 8);
         int led = data[SERVO_NUM+2];
@@ -245,7 +242,7 @@ void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLe
           digitalWrite(LED_EYE_RIGHT, (led & 2) ? HIGH:LOW);
         }
       }
-    } 
+    }
     else if (opCode == 4) {
       g_debug.print("OK\n");
       // REQ_ACCEL
@@ -279,7 +276,7 @@ void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLe
       //g_debug.print(z, DEC);
       //g_debug.print(")\n");
     }
-  } 
+  }
   else if (packetType == 0x69) {
     // The message from RBT-001
     if (opCode == 0x11) {
@@ -300,7 +297,7 @@ void handleRecvPacket(unsigned char packetType, unsigned char opCode, int dataLe
       digitalWrite(LED_EYE_RIGHT, LOW);
       g_debug.print("SPP Link released.");
       g_debug.print("\n");
-    } 
+    }
     else if (opCode == 0x10) {
       // End UART break mode
       g_debug.print("End UART break mode.\n");

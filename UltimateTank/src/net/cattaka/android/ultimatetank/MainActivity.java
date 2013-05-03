@@ -1,25 +1,21 @@
 
 package net.cattaka.android.ultimatetank;
 
-import jp.ksksue.driver.serial.FTDriver;
 import net.cattaka.android.ultimatetank.fragment.BaseFragment;
 import net.cattaka.android.ultimatetank.fragment.BaseFragment.IBaseFragmentAdapter;
 import net.cattaka.android.ultimatetank.fragment.ConnectFragment;
 import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
 import net.cattaka.android.ultimatetank.usb.MyConnectionThread;
-import net.cattaka.android.ultimatetank.usb.MySocketPrepareTask;
 import net.cattaka.android.ultimatetank.usb.data.MyPacket;
 import net.cattaka.android.ultimatetank.usb.data.MyPacketFactory;
 import net.cattaka.libgeppa.data.ConnectionCode;
 import net.cattaka.libgeppa.data.ConnectionState;
+import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
 import net.cattaka.libgeppa.thread.IConnectionThreadListener;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
-import android.content.Context;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.widget.Toast;
@@ -27,11 +23,9 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements IBaseFragmentAdapter {
     private MainActivity me = this;
 
-    private FTDriver mFtDriver;
-
     private MyConnectionThread mConnectionThread;
 
-    private UsbDevice mCurrentUsbDevice;
+    private IRawSocketPrepareTask mCurrentPrepareTask;
 
     private IConnectionThreadListener<MyPacket> mConnectionThreadListener = new IConnectionThreadListener<MyPacket>() {
         private ProgressDialog nowConnectiondDialog;
@@ -105,13 +99,9 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     @Override
     protected void onResume() {
         super.onResume();
-        UsbManager usbManager = (UsbManager)getSystemService(Context.USB_SERVICE);
-        mFtDriver = new FTDriver(usbManager);
-        mFtDriver.setRxTimeout(1000); // This is not impossible.
-
         { // If last connected device exists, start conectionThread again.
-            if (mCurrentUsbDevice != null) {
-                startConnectionThread(mCurrentUsbDevice);
+            if (mCurrentPrepareTask != null) {
+                startConnectionThread(mCurrentPrepareTask);
             }
         }
     }
@@ -120,18 +110,16 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     protected void onPause() {
         super.onPause();
         stopConnectionThread();
-        mFtDriver.end();
     }
 
-    public void startConnectionThread(UsbDevice usbDevice) {
-        mCurrentUsbDevice = usbDevice;
+    public void startConnectionThread(IRawSocketPrepareTask prepareTask) {
+        mCurrentPrepareTask = prepareTask;
 
         stopConnectionThread();
 
-        MySocketPrepareTask prepareTask = new MySocketPrepareTask(mFtDriver);
-        MyPacketFactory packetFactory = new MyPacketFactory();
+        mCurrentPrepareTask.setup(this);
 
-        mConnectionThread = new MyConnectionThread(prepareTask, packetFactory,
+        mConnectionThread = new MyConnectionThread(mCurrentPrepareTask, new MyPacketFactory(),
                 mConnectionThreadListener);
 
         try {

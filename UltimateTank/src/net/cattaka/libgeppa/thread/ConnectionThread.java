@@ -12,6 +12,7 @@ import net.cattaka.libgeppa.data.ConnectionCode;
 import net.cattaka.libgeppa.data.ConnectionState;
 import net.cattaka.libgeppa.data.IPacket;
 import net.cattaka.libgeppa.data.IPacketFactory;
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -30,6 +31,8 @@ public class ConnectionThread<T extends IPacket> {
 
     public interface IRawSocketPrepareTask {
         public IRawSocket prepareRawSocket();
+
+        public void setup(Context context);
     }
 
     private Handler.Callback mOuterCallback = new Handler.Callback() {
@@ -166,27 +169,30 @@ public class ConnectionThread<T extends IPacket> {
                 semaphore.release();
                 rawSocket = mPrepareTask.prepareRawSocket();
                 if (rawSocket != null) {
-                    this.setName("ConnectionThread:" + rawSocket.getLabel());
-                    InputStream inputStream = rawSocket.getInputStream();
-                    OutputStream outputStream = rawSocket.getOutputStream();
-                    innerCallback.setOutputStream(outputStream);
-
-                    { // Creating receiveThread
-                        ReceiveThread<T> receiveThread = new ReceiveThread<T>(EVENT_RECEIVE,
-                                EVENT_SOCKET_CLOSED, handler, inputStream, mPacketFactory);
-                        innerCallback.setReceiveThread(receiveThread);
-                        receiveThread.startThread(rawSocket.getLabel());
-                    }
-                    mOuterHandler.obtainMessage(EVENT_SOCKET_CONNECTED).sendToTarget();
-
-                    Looper.loop();
                     try {
-                        rawSocket.close();
-                    } catch (IOException e) {
-                        Log.w(Constants.TAG, e.getMessage());
+                        this.setName("ConnectionThread:" + rawSocket.getLabel());
+                        InputStream inputStream = rawSocket.getInputStream();
+                        OutputStream outputStream = rawSocket.getOutputStream();
+                        innerCallback.setOutputStream(outputStream);
+
+                        { // Creating receiveThread
+                            ReceiveThread<T> receiveThread = new ReceiveThread<T>(EVENT_RECEIVE,
+                                    EVENT_SOCKET_CLOSED, handler, inputStream, mPacketFactory);
+                            innerCallback.setReceiveThread(receiveThread);
+                            receiveThread.startThread(rawSocket.getLabel());
+                        }
+                        mOuterHandler.obtainMessage(EVENT_SOCKET_CONNECTED).sendToTarget();
+
+                        Looper.loop();
+                    } finally {
+                        try {
+                            rawSocket.close();
+                        } catch (IOException e) {
+                            Log.w(Constants.TAG, e.getMessage());
+                        }
+                        mOuterHandler.obtainMessage(EVENT_SOCKET_CLOSED,
+                                ConnectionCode.DISCONNECTED).sendToTarget();
                     }
-                    mOuterHandler.obtainMessage(EVENT_SOCKET_CLOSED, ConnectionCode.DISCONNECTED)
-                            .sendToTarget();
                 } else {
                     mOuterHandler.obtainMessage(EVENT_SOCKET_CLOSED, ConnectionCode.NO_DEVICE)
                             .sendToTarget();

@@ -5,13 +5,13 @@ import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
 import net.cattaka.android.ultimatetank.usb.data.MyPacket;
 import net.cattaka.libgeppa.data.ConnectionCode;
 import net.cattaka.libgeppa.data.ConnectionState;
+import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
 import net.cattaka.libgeppa.thread.IConnectionThreadListener;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbDevice;
 
 /**
  * This class abstract activity's functions so that avoid casting activity to
@@ -27,7 +27,7 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
 
         public void unregisterReceiver(BroadcastReceiver receiver);
 
-        public void startConnectionThread(UsbDevice usbDevice);
+        public void startConnectionThread(IRawSocketPrepareTask prepareTask);
 
         public void replacePrimaryFragment(Fragment fragment, boolean withBackStack);
 
@@ -65,8 +65,8 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
     }
 
     /** Do only delegation */
-    public void connectUsbDevice(UsbDevice usbDevice) {
-        getBaseFragmentAdapter().startConnectionThread(usbDevice);
+    public void connectUsbDevice(IRawSocketPrepareTask prepareTask) {
+        getBaseFragmentAdapter().startConnectionThread(prepareTask);
     }
 
     /** Do only delegation */

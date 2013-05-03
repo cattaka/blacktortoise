@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import net.cattaka.android.ultimatetank.R;
+import net.cattaka.android.ultimatetank.usb.FtDriverSocketPrepareTask;
 import net.cattaka.android.ultimatetank.usb.UsbClass;
 import net.cattaka.libgeppa.data.ConnectionCode;
 import net.cattaka.libgeppa.data.ConnectionState;
@@ -141,7 +142,8 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
         } else {
             if (usbman.hasPermission(usbDevice)) {
                 // OK
-                getBaseFragmentAdapter().startConnectionThread(usbDevice);
+                FtDriverSocketPrepareTask prepareTask = new FtDriverSocketPrepareTask(usbDevice);
+                getBaseFragmentAdapter().startConnectionThread(prepareTask);
             } else {
                 // requests permission to use device
                 Intent intent = new Intent(ACTION_USB_PERMISSION);

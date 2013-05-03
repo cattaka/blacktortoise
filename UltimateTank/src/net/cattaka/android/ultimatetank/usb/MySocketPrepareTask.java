@@ -1,5 +1,5 @@
 
-package net.cattaka.android.ultimatetank.net;
+package net.cattaka.android.ultimatetank.usb;
 
 import jp.ksksue.driver.serial.FTDriver;
 import net.cattaka.libgeppa.IRawSocket;

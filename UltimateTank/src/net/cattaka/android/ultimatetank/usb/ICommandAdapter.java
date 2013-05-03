@@ -1,7 +1,7 @@
 
 package net.cattaka.android.ultimatetank.usb;
 
-import net.cattaka.android.ultimatetank.net.data.MyPacket;
+import net.cattaka.android.ultimatetank.usb.data.MyPacket;
 import net.cattaka.libgeppa.thread.ConnectionThread;
 
 public interface ICommandAdapter {

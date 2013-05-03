@@ -1,5 +1,5 @@
 
-package net.cattaka.android.ultimatetank.net;
+package net.cattaka.android.ultimatetank.usb;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -5,9 +5,9 @@ import java.util.Locale;
 
 import net.cattaka.android.ultimatetank.NormalizedOnTouchListener;
 import net.cattaka.android.ultimatetank.R;
-import net.cattaka.android.ultimatetank.net.data.MyPacket;
-import net.cattaka.android.ultimatetank.net.data.OpCode;
 import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
+import net.cattaka.android.ultimatetank.usb.data.MyPacket;
+import net.cattaka.android.ultimatetank.usb.data.OpCode;
 import net.cattaka.android.ultimatetank.util.CommandAdapterUtil;
 import android.os.Bundle;
 import android.os.SystemClock;

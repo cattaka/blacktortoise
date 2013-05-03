@@ -1,5 +1,5 @@
 
-package net.cattaka.android.ultimatetank.net.data;
+package net.cattaka.android.ultimatetank.usb.data;
 
 public enum OpCode {
     ECHO((byte)0), //

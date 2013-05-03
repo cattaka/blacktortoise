@@ -1,9 +1,8 @@
 
-package net.cattaka.android.ultimatetank.net;
+package net.cattaka.android.ultimatetank.usb;
 
-import net.cattaka.android.ultimatetank.net.data.MyPacket;
-import net.cattaka.android.ultimatetank.net.data.OpCode;
-import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
+import net.cattaka.android.ultimatetank.usb.data.MyPacket;
+import net.cattaka.android.ultimatetank.usb.data.OpCode;
 import net.cattaka.libgeppa.data.IPacketFactory;
 import net.cattaka.libgeppa.thread.ConnectionThread;
 import net.cattaka.libgeppa.thread.IConnectionThreadListener;

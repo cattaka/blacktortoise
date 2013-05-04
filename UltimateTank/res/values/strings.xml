@@ -21,6 +21,7 @@
     <string name="btn_send">Send</string>
     <string name="btn_clear">Clear</string>
     <string name="btn_delete">Delete</string>
+    <string name="btn_dummy">Dummy</string>
 
     <string name="msg_now_connecting">Now connecting</string>
     <string name="msg_echo">Echo</string>

@@ -12,6 +12,7 @@ import net.cattaka.android.ultimatetank.dialog.EditAddrresDialog;
 import net.cattaka.android.ultimatetank.dialog.EditAddrresDialog.IEditAddrresDialogListener;
 import net.cattaka.android.ultimatetank.entity.MySocketAddress;
 import net.cattaka.android.ultimatetank.net.RemoteSocketPrepareTask;
+import net.cattaka.android.ultimatetank.usb.DummySocketPrepareTask;
 import net.cattaka.android.ultimatetank.usb.FtDriverSocketPrepareTask;
 import net.cattaka.android.ultimatetank.usb.UsbClass;
 import net.cattaka.libgeppa.data.ConnectionCode;
@@ -89,6 +90,7 @@ public class ConnectFragment extends BaseFragment implements OnClickListener, On
         mSocketAddressList = (ListView)view.findViewById(R.id.socketAddressList);
 
         // Binds event listener
+        view.findViewById(R.id.useDummyButton).setOnClickListener(this);
         view.findViewById(R.id.addSocketAddressButton).setOnClickListener(this);
         mUsbDeviceList.setOnItemClickListener(this);
         mSocketAddressList.setOnItemClickListener(this);
@@ -158,6 +160,9 @@ public class ConnectFragment extends BaseFragment implements OnClickListener, On
     public void onClick(View v) {
         if (v.getId() == R.id.addSocketAddressButton) {
             mEditAddrresDialog.show(null);
+        } else if (v.getId() == R.id.useDummyButton) {
+            DummySocketPrepareTask prepareTask = new DummySocketPrepareTask();
+            getBaseFragmentAdapter().startConnectionThread(prepareTask);
         }
     }
 

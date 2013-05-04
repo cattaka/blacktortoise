@@ -134,6 +134,8 @@ public class ConnectionThread<T extends IPacket> {
 
     private ConnectionState mLastConnectionState = ConnectionState.INITIAL;
 
+    private IRawSocket mRawSocket;
+
     public ConnectionThread(IRawSocketPrepareTask prepareTask, IPacketFactory<T> packetFactory,
             IConnectionThreadListener<T> connectionThreadListener) {
         this(prepareTask, packetFactory, connectionThreadListener, false);
@@ -151,6 +153,8 @@ public class ConnectionThread<T extends IPacket> {
         } else {
             mOuterHandler = new Handler(mOuterCallback);
         }
+
+        mRawSocket = mPrepareTask.prepareRawSocket();
     }
 
     public void startThread() throws InterruptedException {
@@ -165,28 +169,26 @@ public class ConnectionThread<T extends IPacket> {
                 Handler handler = new Handler(innerCallback);
                 mOuterHandler.obtainMessage(EVENT_SOCKET_CONNECTING, handler).sendToTarget();
 
-                IRawSocket rawSocket;
                 semaphore.release();
-                rawSocket = mPrepareTask.prepareRawSocket();
-                if (rawSocket != null) {
+                if (mRawSocket.setup()) {
                     try {
-                        this.setName("ConnectionThread:" + rawSocket.getLabel());
-                        InputStream inputStream = rawSocket.getInputStream();
-                        OutputStream outputStream = rawSocket.getOutputStream();
+                        this.setName("ConnectionThread:" + mRawSocket.getLabel());
+                        InputStream inputStream = mRawSocket.getInputStream();
+                        OutputStream outputStream = mRawSocket.getOutputStream();
                         innerCallback.setOutputStream(outputStream);
 
                         { // Creating receiveThread
                             ReceiveThread<T> receiveThread = new ReceiveThread<T>(EVENT_RECEIVE,
                                     EVENT_SOCKET_CLOSED, handler, inputStream, mPacketFactory);
                             innerCallback.setReceiveThread(receiveThread);
-                            receiveThread.startThread(rawSocket.getLabel());
+                            receiveThread.startThread(mRawSocket.getLabel());
                         }
                         mOuterHandler.obtainMessage(EVENT_SOCKET_CONNECTED).sendToTarget();
 
                         Looper.loop();
                     } finally {
                         try {
-                            rawSocket.close();
+                            mRawSocket.close();
                         } catch (IOException e) {
                             Log.w(Constants.TAG, e.getMessage());
                         }
@@ -205,6 +207,14 @@ public class ConnectionThread<T extends IPacket> {
     }
 
     public void stopThread() throws InterruptedException {
+        if (!mRawSocket.isConnected()) {
+            try {
+                mRawSocket.close();
+            } catch (IOException e) {
+                // Impossible
+                Log.w(Constants.TAG, e.getMessage(), e);
+            }
+        }
         // note : mInnerHandler is exactly not null because it uses semaphore.
         mInnerHandler.obtainMessage(EVENT_SOCKET_CLOSED).sendToTarget();
         mThread.join();

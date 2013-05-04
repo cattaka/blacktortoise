@@ -15,6 +15,7 @@ public class MainMenuFragment extends BaseFragment implements OnClickListener {
 
         // Bind event listeners
         view.findViewById(R.id.validationButton).setOnClickListener(this);
+        view.findViewById(R.id.serverModeButton).setOnClickListener(this);
 
         return view;
     }
@@ -23,6 +24,9 @@ public class MainMenuFragment extends BaseFragment implements OnClickListener {
     public void onClick(View v) {
         if (v.getId() == R.id.validationButton) {
             ValidationFragment nextFragment = new ValidationFragment();
+            replacePrimaryFragment(nextFragment, true);
+        } else if (v.getId() == R.id.serverModeButton) {
+            ServerModeFragment nextFragment = new ServerModeFragment();
             replacePrimaryFragment(nextFragment, true);
         }
     }

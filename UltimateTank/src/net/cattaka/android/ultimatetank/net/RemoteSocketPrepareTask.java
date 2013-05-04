@@ -1,14 +1,12 @@
 
 package net.cattaka.android.ultimatetank.net;
 
-import java.io.IOException;
-import java.net.Socket;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
-import net.cattaka.android.ultimatetank.Constants;
 import net.cattaka.libgeppa.IRawSocket;
 import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
 import android.content.Context;
-import android.util.Log;
 
 public class RemoteSocketPrepareTask implements IRawSocketPrepareTask {
     private String mHostname;
@@ -28,20 +26,9 @@ public class RemoteSocketPrepareTask implements IRawSocketPrepareTask {
 
     @Override
     public IRawSocket prepareRawSocket() {
-        Socket socket = null;
         IRawSocket rawSocket = null;
-        try {
-            socket = new Socket(mHostname, port);
-            rawSocket = new RemoteSocket(socket);
-        } catch (IOException e) {
-            if (socket != null) {
-                try {
-                    socket.close();
-                } catch (IOException e2) {
-                    Log.w(Constants.TAG, e2.getMessage(), e);
-                }
-            }
-        }
+        SocketAddress remoteAddr = new InetSocketAddress(mHostname, port);
+        rawSocket = new RemoteSocket(remoteAddr);
         return rawSocket;
     }
 

@@ -84,6 +84,11 @@ public class FtDriverSocket implements IRawSocket {
     }
 
     @Override
+    public boolean setup() {
+        return true;
+    }
+
+    @Override
     public String getLabel() {
         return "FTDriver Socket";
     }

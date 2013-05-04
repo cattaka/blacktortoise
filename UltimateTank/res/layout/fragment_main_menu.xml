@@ -20,4 +20,13 @@
         android:layout_below="@+id/titleText"
         android:text="@string/btn_validation" />
 
+    <Button
+        android:id="@+id/serverModeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/validationButton"
+        android:layout_alignBottom="@+id/validationButton"
+        android:layout_alignParentRight="true"
+        android:text="@string/btn_server_mode" />
+
 </RelativeLayout>

@@ -14,11 +14,12 @@ import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
 import net.cattaka.libgeppa.thread.IConnectionThreadListener;
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.Menu;
-import android.widget.Toast;
 
 public class MainActivity extends Activity implements IBaseFragmentAdapter {
     private MainActivity me = this;
@@ -44,10 +45,26 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
 
         @Override
         public void onConnectionStateChanged(ConnectionState state, ConnectionCode code) {
+            if (state == ConnectionState.CLOSED) {
+                FragmentManager fm = getFragmentManager();
+                for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
+                    fm.popBackStack();
+                }
+                ConnectFragment nextFragment = new ConnectFragment();
+                replacePrimaryFragment(nextFragment, false);
+            }
             if (state == ConnectionState.CONNECTING) {
                 if (nowConnectiondDialog == null) {
                     nowConnectiondDialog = new ProgressDialog(me);
                     nowConnectiondDialog.setMessage(me.getText(R.string.msg_now_connecting));
+                    nowConnectiondDialog
+                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
+
+                                @Override
+                                public void onCancel(DialogInterface dialog) {
+                                    stopConnectionThread();
+                                }
+                            });
                     nowConnectiondDialog.show();
                 }
             } else // if (state == ConnectionState.CONNECTED || state ==
@@ -66,10 +83,6 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
                     // impossible
                 }
             }
-
-            // TODO delete this toast.
-            Toast.makeText(MainActivity.this, "ConnectionState:" + state, Toast.LENGTH_SHORT)
-                    .show();
         }
     };
 

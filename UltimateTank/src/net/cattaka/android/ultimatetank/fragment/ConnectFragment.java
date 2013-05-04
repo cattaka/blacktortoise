@@ -7,6 +7,11 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import net.cattaka.android.ultimatetank.R;
+import net.cattaka.android.ultimatetank.db.UltimateTankDbHelper;
+import net.cattaka.android.ultimatetank.dialog.EditAddrresDialog;
+import net.cattaka.android.ultimatetank.dialog.EditAddrresDialog.IEditAddrresDialogListener;
+import net.cattaka.android.ultimatetank.entity.MySocketAddress;
+import net.cattaka.android.ultimatetank.net.RemoteSocketPrepareTask;
 import net.cattaka.android.ultimatetank.usb.FtDriverSocketPrepareTask;
 import net.cattaka.android.ultimatetank.usb.UsbClass;
 import net.cattaka.libgeppa.data.ConnectionCode;
@@ -21,15 +26,16 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-public class ConnectFragment extends BaseFragment implements OnItemClickListener {
-    private ListView mUsbDeviceList;
-
+public class ConnectFragment extends BaseFragment implements OnClickListener, OnItemClickListener,
+        OnItemLongClickListener, IEditAddrresDialogListener {
     protected static final String ACTION_USB_PERMISSION = "net.cattaka.android.ultimatetank.fragment.action_permission";
 
     protected static final String EXTRA_USB_DEVICE_KEY = "usbDevicekey";
@@ -62,19 +68,33 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
                 refleshUsbDeviceList();
                 String itemKey = intent.getStringExtra(EXTRA_USB_DEVICE_KEY);
                 if (itemKey != null) {
-                    onSelectItem(itemKey);
+                    onSelectUsbItem(itemKey);
                 }
             }
         }
     };
 
+    private UltimateTankDbHelper mDbHelper;
+
+    private EditAddrresDialog mEditAddrresDialog;
+
+    private ListView mUsbDeviceList;
+
+    private ListView mSocketAddressList;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_connect, null);
         mUsbDeviceList = (ListView)view.findViewById(R.id.usbDeviceList);
+        mSocketAddressList = (ListView)view.findViewById(R.id.socketAddressList);
 
         // Binds event listener
+        view.findViewById(R.id.addSocketAddressButton).setOnClickListener(this);
         mUsbDeviceList.setOnItemClickListener(this);
+        mSocketAddressList.setOnItemClickListener(this);
+        mSocketAddressList.setOnItemLongClickListener(this);
+
+        mEditAddrresDialog = EditAddrresDialog.createEditAddrresDialog(getContext(), this);
 
         return view;
     }
@@ -82,7 +102,10 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
     @Override
     public void onResume() {
         super.onResume();
+        mDbHelper = new UltimateTankDbHelper(getContext());
+
         refleshUsbDeviceList();
+        refleshSocketAddressList();
 
         { // Registers receiver for USB attach
             IntentFilter filter = new IntentFilter();
@@ -99,6 +122,8 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
         { // Unregisters receiver for USB attach
             unregisterReceiver(mUsbReceiver);
         }
+        mDbHelper.close();
+        mDbHelper = null;
     }
 
     private void refleshUsbDeviceList() {
@@ -122,16 +147,69 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
         mUsbDeviceList.setAdapter(adapter);
     }
 
+    private void refleshSocketAddressList() {
+        List<MySocketAddress> items = mDbHelper.findMySocketAddresses();
+        ArrayAdapter<MySocketAddress> adapter = new ArrayAdapter<MySocketAddress>(getContext(),
+                android.R.layout.simple_list_item_1, items);
+        mSocketAddressList.setAdapter(adapter);
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.addSocketAddressButton) {
+            mEditAddrresDialog.show(null);
+        }
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
 
         if (parent.getId() == R.id.usbDeviceList) {
             ListItem item = (ListItem)mUsbDeviceList.getItemAtPosition(position);
-            onSelectItem(item.key);
+            onSelectUsbItem(item.key);
+        } else if (parent.getId() == R.id.socketAddressList) {
+            MySocketAddress item = (MySocketAddress)parent.getItemAtPosition(position);
+            onSelectSocketAddress(item);
         }
     }
 
-    private void onSelectItem(String itemKey) {
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
+        if (parent.getId() == R.id.socketAddressList) {
+            MySocketAddress item = (MySocketAddress)parent.getItemAtPosition(position);
+            mEditAddrresDialog.show(item);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @see EditAddrresDialog.IEditAddrresDialogListener
+     */
+    @Override
+    public void onEditAddrresDialogFinished(MySocketAddress result) {
+        mDbHelper.registerMySocketAddress(result);
+        refleshSocketAddressList();
+    };
+
+    /**
+     * @see EditAddrresDialog.IEditAddrresDialogListener
+     */
+    @Override
+    public void onEditAddrresDialogCanceled() {
+        // none
+    }
+
+    @Override
+    public void onEditAddrresDialogDelete(Long id) {
+        if (id != null) {
+            mDbHelper.deleteMySocketAddress(id);
+            refleshSocketAddressList();
+        }
+    }
+
+    private void onSelectUsbItem(String itemKey) {
         UsbManager usbman = (UsbManager)getBaseFragmentAdapter().getSystemService(
                 Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceMap = usbman.getDeviceList();
@@ -152,6 +230,12 @@ public class ConnectFragment extends BaseFragment implements OnItemClickListener
                 usbman.requestPermission(usbDevice, pIntent);
             }
         }
+    }
+
+    private void onSelectSocketAddress(MySocketAddress item) {
+        RemoteSocketPrepareTask prepareTask = new RemoteSocketPrepareTask(item.getHostName(),
+                item.getPort());
+        getBaseFragmentAdapter().startConnectionThread(prepareTask);
     }
 
     @Override

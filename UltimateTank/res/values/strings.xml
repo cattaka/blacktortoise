@@ -16,7 +16,7 @@
     <string name="label_host_name">Host name</string>
     <string name="label_port">Port</string>
 
-    <string name="btn_validation">Validation</string>
+    <string name="btn_controller">Controller</string>
     <string name="btn_server_mode">Server mode</string>
     <string name="btn_send">Send</string>
     <string name="btn_clear">Clear</string>

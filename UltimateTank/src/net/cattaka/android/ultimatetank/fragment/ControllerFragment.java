@@ -20,7 +20,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
-public class ValidationFragment extends BaseFragment implements OnClickListener {
+public class ControllerFragment extends BaseFragment implements OnClickListener {
     private OnTouchListener mOnTouchListener = new NormalizedOnTouchListener() {
         long lastSendHeadTime;
 
@@ -76,7 +76,7 @@ public class ValidationFragment extends BaseFragment implements OnClickListener 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_validation, null);
+        View view = inflater.inflate(R.layout.fragment_controller, null);
 
         // Pickup views
         mHeadValueText = (TextView)view.findViewById(R.id.head_value_text);

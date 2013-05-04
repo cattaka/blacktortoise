@@ -13,19 +13,19 @@
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <Button
-        android:id="@+id/validationButton"
+        android:id="@+id/controllerButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/titleText"
-        android:text="@string/btn_validation" />
+        android:text="@string/btn_controller" />
 
     <Button
         android:id="@+id/serverModeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/validationButton"
-        android:layout_alignBottom="@+id/validationButton"
+        android:layout_alignBaseline="@+id/controllerButton"
+        android:layout_alignBottom="@+id/controllerButton"
         android:layout_alignParentRight="true"
         android:text="@string/btn_server_mode" />
 

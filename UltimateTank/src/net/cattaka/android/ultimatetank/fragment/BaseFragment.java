@@ -1,11 +1,13 @@
 
 package net.cattaka.android.ultimatetank.fragment;
 
+import net.cattaka.android.ultimatetank.camera.ICameraManager;
+import net.cattaka.android.ultimatetank.camera.ICameraManagerAdapter;
 import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
+import net.cattaka.android.ultimatetank.usb.IMySocketPrepareTask;
 import net.cattaka.android.ultimatetank.usb.data.MyPacket;
 import net.cattaka.libgeppa.data.ConnectionCode;
 import net.cattaka.libgeppa.data.ConnectionState;
-import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
 import net.cattaka.libgeppa.thread.IConnectionThreadListener;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
@@ -27,15 +29,36 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
 
         public void unregisterReceiver(BroadcastReceiver receiver);
 
-        public void startConnectionThread(IRawSocketPrepareTask prepareTask);
+        public void startConnectionThread(IMySocketPrepareTask prepareTask);
 
         public void replacePrimaryFragment(Fragment fragment, boolean withBackStack);
 
         public ICommandAdapter getCommandAdapter();
+
+        public ICameraManager createCameraManager();
+
+        public boolean registerConnectionThreadListener(IConnectionThreadListener<MyPacket> listener);
+
+        public boolean unregisterConnectionThreadListener(
+                IConnectionThreadListener<MyPacket> listener);
+
+        public void setKeepScreen(boolean flag);
     }
 
     public IBaseFragmentAdapter getBaseFragmentAdapter() {
         return (IBaseFragmentAdapter)getActivity();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getBaseFragmentAdapter().registerConnectionThreadListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        getBaseFragmentAdapter().unregisterConnectionThreadListener(this);
     }
 
     public Context getContext() {
@@ -65,7 +88,7 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
     }
 
     /** Do only delegation */
-    public void connectUsbDevice(IRawSocketPrepareTask prepareTask) {
+    public void connectUsbDevice(IMySocketPrepareTask prepareTask) {
         getBaseFragmentAdapter().startConnectionThread(prepareTask);
     }
 
@@ -74,7 +97,29 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
         getBaseFragmentAdapter().replacePrimaryFragment(fragment, withBackStack);
     }
 
+    public ICameraManager createCameraManager(ICameraManagerAdapter adapter) {
+        ICameraManager cameraManager = getBaseFragmentAdapter().createCameraManager();
+        if (cameraManager != null) {
+            cameraManager.setup(adapter, getBaseFragmentAdapter());
+        }
+        return cameraManager;
+    }
+
+    /** Do only delegation */
+    public boolean registerConnectionThreadListener(IConnectionThreadListener<MyPacket> listener) {
+        return getBaseFragmentAdapter().registerConnectionThreadListener(listener);
+    }
+
+    /** Do only delegation */
+    public boolean unregisterConnectionThreadListener(IConnectionThreadListener<MyPacket> listener) {
+        return getBaseFragmentAdapter().unregisterConnectionThreadListener(listener);
+    }
+
     public ICommandAdapter getCommandAdapter() {
         return getBaseFragmentAdapter().getCommandAdapter();
+    }
+
+    public void setKeepScreen(boolean flag) {
+        getBaseFragmentAdapter().setKeepScreen(flag);
     }
 }

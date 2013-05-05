@@ -5,6 +5,8 @@ public enum OpCode {
     ECHO((byte)0), //
     MOVE((byte)1), //
     HEAD((byte)2), //
+    REQUEST_CAMERA_IMAGE((byte)3), //
+    CAMERA_IMAGE((byte)4), //
     UNKNOWN((byte)-1);
 
     private byte value;

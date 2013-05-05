@@ -3,6 +3,7 @@ package net.cattaka.android.ultimatetank.usb;
 
 import net.cattaka.android.ultimatetank.usb.data.MyPacket;
 import net.cattaka.libgeppa.thread.ConnectionThread;
+import android.graphics.Bitmap;
 
 public interface ICommandAdapter {
     /**
@@ -25,4 +26,15 @@ public interface ICommandAdapter {
      * @return If putting to queue is succeed it returns true, otherwise false.
      */
     public boolean sendHead(float yaw, float pitch);
+
+    /**
+     * @return If putting to queue is succeed it returns true, otherwise false.
+     */
+    public boolean sendRequestCameraImage();
+
+    /**
+     * @param bitmap Target image
+     * @return If putting to queue is succeed it returns true, otherwise false.
+     */
+    public boolean sendCameraImage(Bitmap bitmap);
 }

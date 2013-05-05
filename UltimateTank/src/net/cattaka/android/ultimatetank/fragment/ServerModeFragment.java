@@ -1,10 +1,15 @@
 
 package net.cattaka.android.ultimatetank.fragment;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import net.cattaka.android.ultimatetank.R;
+import net.cattaka.android.ultimatetank.camera.ICameraManager;
+import net.cattaka.android.ultimatetank.camera.ICameraManagerAdapter;
 import net.cattaka.android.ultimatetank.net.ClientThread;
 import net.cattaka.android.ultimatetank.net.ServerThread;
 import net.cattaka.android.ultimatetank.net.ServerThread.IServerThreadListener;
@@ -12,10 +17,8 @@ import net.cattaka.android.ultimatetank.net.data.SocketState;
 import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
 import net.cattaka.android.ultimatetank.usb.data.MyPacket;
 import net.cattaka.android.ultimatetank.usb.data.OpCode;
-import net.cattaka.android.ultimatetank.util.CameraManager;
-import net.cattaka.android.ultimatetank.util.CameraManager.ICameraManagerAdapter;
 import android.graphics.Bitmap;
-import android.hardware.Camera;
+import android.graphics.Bitmap.CompressFormat;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
@@ -53,6 +56,11 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
         @Override
         public void onReceivePacket(ClientThread from, MyPacket packet) {
             getCommandAdapter().sendPacket(packet);
+            if (packet.getOpCode() == OpCode.REQUEST_CAMERA_IMAGE) {
+                synchronized (mRequestedCameraImageClients) {
+                    mRequestedCameraImageClients.add(from);
+                }
+            }
         }
     };
 
@@ -62,7 +70,15 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
 
     private ImageView mCameraImageView;
 
-    private CameraManager mCameraManager;
+    private ICameraManager mCameraManager;
+
+    private Set<ClientThread> mRequestedCameraImageClients;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mRequestedCameraImageClients = new HashSet<ClientThread>();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -76,17 +92,30 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
         // Bind event listeners
         mCameraImageView.setOnClickListener(this);
 
-        mCameraManager = new CameraManager(new ICameraManagerAdapter() {
+        mCameraManager = createCameraManager(new ICameraManagerAdapter() {
             @Override
             public SurfaceView getSurfaceView() {
                 return mCameraSurfaceView;
             }
 
             @Override
-            public void onPictureTaken(Bitmap bitmap, Camera camera) {
+            public void onPictureTaken(Bitmap bitmap, ICameraManager cameraManager) {
                 mCameraImageView.setImageBitmap(bitmap);
+                synchronized (mRequestedCameraImageClients) {
+                    if (mRequestedCameraImageClients.size() > 0) {
+                        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                        bitmap.compress(CompressFormat.JPEG, 50, bout);
+                        byte[] data = bout.toByteArray();
+                        MyPacket packet = new MyPacket(OpCode.CAMERA_IMAGE, data.length, data);
+                        for (ClientThread ct : mRequestedCameraImageClients) {
+                            ct.sendPacket(packet);
+                        }
+                        mRequestedCameraImageClients.clear();
+                    }
+                }
             }
         });
+        mCameraManager.setEnablePreview(true);
 
         return view;
     }
@@ -105,6 +134,7 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
             throw new RuntimeException(e);
         }
         mCameraManager.onResume();
+        setKeepScreen(true);
     }
 
     @Override
@@ -115,6 +145,7 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
             mServerThread = null;
         }
         mCameraManager.onPause();
+        setKeepScreen(false);
     }
 
     @Override

@@ -1,31 +1,43 @@
 
-package net.cattaka.android.ultimatetank.util;
+package net.cattaka.android.ultimatetank.camera;
 
 import java.io.IOException;
 
 import net.cattaka.android.ultimatetank.Constants;
+import net.cattaka.android.ultimatetank.fragment.BaseFragment.IBaseFragmentAdapter;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 
-public class CameraManager {
-    public interface ICameraManagerAdapter {
-        public SurfaceView getSurfaceView();
-
-        public void onPictureTaken(Bitmap bitmap, Camera camera);
-    }
-
+public class DeviceCameraManager implements ICameraManager {
     private SurfaceHolder.Callback mSurfaceListener = new SurfaceHolder.Callback() {
         public void surfaceCreated(SurfaceHolder holder) {
-            setSurfaceHolder(holder);
+            if (mCamera == null) {
+                mCamera = Camera.open();
+                try {
+                    mCamera.setPreviewDisplay(holder);
+                } catch (IOException e) {
+                    // Ignore
+                    Log.e(Constants.TAG, e.getMessage(), e);
+                }
+                PreviewCallbackEx previewCallback = new PreviewCallbackEx(mCamera, true, true);
+                mCamera.setPreviewCallback(previewCallback);
+                if (mEnablePreview) {
+                    mCamera.startPreview();
+                }
+            }
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
-            setSurfaceHolder(holder);
+            if (mCamera != null) {
+                mCamera.setPreviewCallback(null);
+                mCamera.stopPreview();
+                mCamera.release();
+                mCamera = null;
+            }
         }
 
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -61,7 +73,7 @@ public class CameraManager {
             decodeYUV(cacheRgb, data, size.width, size.height, reverse, rotate); // 変換
             cacheBitmap.setPixels(cacheRgb, 0, cacheBitmap.getWidth(), 0, 0,
                     cacheBitmap.getWidth(), cacheBitmap.getHeight());
-            mAdapter.onPictureTaken(cacheBitmap, camera);
+            mAdapter.onPictureTaken(cacheBitmap, DeviceCameraManager.this);
         }
     };
 
@@ -71,49 +83,35 @@ public class CameraManager {
 
     private boolean mEnablePreview;
 
-    public CameraManager(ICameraManagerAdapter adapter) {
+    private SurfaceHolder mSurfaceHolder;
+
+    public DeviceCameraManager() {
         super();
-        mAdapter = adapter;
     }
 
+    @Override
+    public void setup(ICameraManagerAdapter cameraManagerAdapter,
+            IBaseFragmentAdapter baseFragmentAdapter) {
+        mAdapter = cameraManagerAdapter;
+    }
+
+    @Override
     public void onResume() {
-        SurfaceHolder holder = mAdapter.getSurfaceView().getHolder();
-        holder.addCallback(mSurfaceListener);
+        mSurfaceHolder = mAdapter.getSurfaceView().getHolder();
+        mSurfaceHolder.addCallback(mSurfaceListener);
     }
 
+    @Override
     public void onPause() {
+        mSurfaceHolder.removeCallback(mSurfaceListener);
     }
 
-    private void setSurfaceHolder(SurfaceHolder holder) {
-        if (holder != null) {
-            if (mCamera == null) {
-                mCamera = Camera.open();
-                try {
-                    mCamera.setPreviewDisplay(holder);
-                } catch (IOException e) {
-                    // Ignore
-                    Log.e(Constants.TAG, e.getMessage(), e);
-                }
-                PreviewCallbackEx previewCallback = new PreviewCallbackEx(mCamera, true, true);
-                mCamera.setPreviewCallback(previewCallback);
-                if (mEnablePreview) {
-                    mCamera.startPreview();
-                }
-            }
-        } else {
-            if (mCamera != null) {
-                mCamera.setPreviewCallback(null);
-                mCamera.stopPreview();
-                mCamera.release();
-                mCamera = null;
-            }
-        }
-    }
-
+    @Override
     public boolean isEnablePreview() {
         return mEnablePreview;
     }
 
+    @Override
     public void setEnablePreview(boolean enablePreview) {
         mEnablePreview = enablePreview;
         if (mCamera != null) {

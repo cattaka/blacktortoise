@@ -5,14 +5,13 @@ import java.util.Locale;
 
 import net.cattaka.android.ultimatetank.NormalizedOnTouchListener;
 import net.cattaka.android.ultimatetank.R;
+import net.cattaka.android.ultimatetank.camera.ICameraManager;
+import net.cattaka.android.ultimatetank.camera.ICameraManagerAdapter;
 import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
 import net.cattaka.android.ultimatetank.usb.data.MyPacket;
 import net.cattaka.android.ultimatetank.usb.data.OpCode;
-import net.cattaka.android.ultimatetank.util.CameraManager;
-import net.cattaka.android.ultimatetank.util.CameraManager.ICameraManagerAdapter;
 import net.cattaka.android.ultimatetank.util.CommandAdapterUtil;
 import android.graphics.Bitmap;
-import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.LayoutInflater;
@@ -37,8 +36,8 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
             if (v.getId() == R.id.controller_head) {
                 long t = SystemClock.elapsedRealtime();
                 if (t - lastSendHeadTime > 100 || event.getActionMasked() == MotionEvent.ACTION_UP) {
-                    float yaw = (rx * 2 - 1);
-                    float pitch = (ry * 2 - 1);
+                    float yaw = (1 - rx);
+                    float pitch = (1 - ry);
                     ;
                     { // Displayes values on TextView
                         String text = String.format(Locale.getDefault(), "(yaw,pitch)=(%.2f,%.2f)",
@@ -48,7 +47,7 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
                     { // Sends command
                         ICommandAdapter adapter = getCommandAdapter();
                         if (adapter != null) {
-                            adapter.sendHead(rx, ry);
+                            adapter.sendHead(yaw, pitch);
                         }
                     }
                     lastSendHeadTime = t;
@@ -84,7 +83,7 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
 
     private ImageView mCameraImageView;
 
-    private CameraManager mCameraManager;
+    private ICameraManager mCameraManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -103,17 +102,18 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
         view.findViewById(R.id.clearButton).setOnClickListener(this);
         mCameraImageView.setOnClickListener(this);
 
-        mCameraManager = new CameraManager(new ICameraManagerAdapter() {
+        mCameraManager = createCameraManager(new ICameraManagerAdapter() {
             @Override
             public SurfaceView getSurfaceView() {
                 return mCameraSurfaceView;
             }
 
             @Override
-            public void onPictureTaken(Bitmap bitmap, Camera camera) {
+            public void onPictureTaken(Bitmap bitmap, ICameraManager cameraManager) {
                 mCameraImageView.setImageBitmap(bitmap);
             }
         });
+        mCameraManager.setEnablePreview(true);
 
         return view;
     }

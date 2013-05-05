@@ -14,7 +14,7 @@ public class MyPacketFactory implements IPacketFactory<MyPacket> {
 
     public static final byte PACKET_TYPE_DATA = 0x01;
 
-    public static final int MAX_DATA_LEN = 0x100;
+    public static final int MAX_DATA_LEN = 1 << 20;
 
     public enum ConState {
         UNKNOWN, STX, PACKET_TYPE, OPC, LEN1, LEN2, CHECKSUM, DATA, ETX
@@ -28,7 +28,7 @@ public class MyPacketFactory implements IPacketFactory<MyPacket> {
         byte opCode = 0;
         int len = 0;
         int dataLen = 0;
-        byte[] data = new byte[MAX_DATA_LEN];
+        byte[] data = null;
         int r;
         outer: while ((r = in.read()) != -1) {
             switch (state) {
@@ -59,10 +59,11 @@ public class MyPacketFactory implements IPacketFactory<MyPacket> {
                     break;
                 }
                 case CHECKSUM: {
-                    int t = 0xFF & (packetType + opCode + (0xFF & len) + (0xFF & (len << 8)));
+                    int t = 0xFF & (packetType + opCode + (0xFF & len) + (0xFF & (len >> 8)));
                     if (r == t) {
                         if (len > 0) {
                             dataLen = 0;
+                            data = new byte[len];
                             state = ConState.DATA;
                         } else {
                             state = ConState.ETX;
@@ -109,7 +110,9 @@ public class MyPacketFactory implements IPacketFactory<MyPacket> {
         out.write(len1);
         out.write(len2);
         out.write(t);
-        out.write(packet.getData(), 0, packet.getDataLen());
+        if (packet.getDataLen() > 0) {
+            out.write(packet.getData(), 0, packet.getDataLen());
+        }
         out.write(ETX);
     }
 }

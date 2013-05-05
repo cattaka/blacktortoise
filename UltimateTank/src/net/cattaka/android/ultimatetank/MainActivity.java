@@ -21,6 +21,7 @@ import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.view.Menu;
 import android.view.WindowManager;
 
@@ -89,6 +90,8 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
 
         mConnectionThreadListeners = new ArrayList<IConnectionThreadListener<MyPacket>>();
 

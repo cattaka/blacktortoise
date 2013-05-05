@@ -8,16 +8,22 @@ import net.cattaka.android.ultimatetank.R;
 import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
 import net.cattaka.android.ultimatetank.usb.data.MyPacket;
 import net.cattaka.android.ultimatetank.usb.data.OpCode;
+import net.cattaka.android.ultimatetank.util.CameraManager;
+import net.cattaka.android.ultimatetank.util.CameraManager.ICameraManagerAdapter;
 import net.cattaka.android.ultimatetank.util.CommandAdapterUtil;
+import android.graphics.Bitmap;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class ControllerFragment extends BaseFragment implements OnClickListener {
@@ -74,6 +80,12 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
 
     private TextView mMoveValueText;
 
+    private SurfaceView mCameraSurfaceView;
+
+    private ImageView mCameraImageView;
+
+    private CameraManager mCameraManager;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_controller, null);
@@ -81,14 +93,41 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
         // Pickup views
         mHeadValueText = (TextView)view.findViewById(R.id.head_value_text);
         mMoveValueText = (TextView)view.findViewById(R.id.move_value_text);
+        mCameraSurfaceView = (SurfaceView)view.findViewById(R.id.cameraSurfaceView);
+        mCameraImageView = (ImageView)view.findViewById(R.id.cameraImageView);
 
         // Binds event listeners
         view.findViewById(R.id.controller_head).setOnTouchListener(mOnTouchListener);
         view.findViewById(R.id.controller_move).setOnTouchListener(mOnTouchListener);
         view.findViewById(R.id.sendButton).setOnClickListener(this);
         view.findViewById(R.id.clearButton).setOnClickListener(this);
+        mCameraImageView.setOnClickListener(this);
+
+        mCameraManager = new CameraManager(new ICameraManagerAdapter() {
+            @Override
+            public SurfaceView getSurfaceView() {
+                return mCameraSurfaceView;
+            }
+
+            @Override
+            public void onPictureTaken(Bitmap bitmap, Camera camera) {
+                mCameraImageView.setImageBitmap(bitmap);
+            }
+        });
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mCameraManager.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mCameraManager.onPause();
     }
 
     @Override
@@ -104,6 +143,8 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
         } else if (v.getId() == R.id.clearButton) {
             TextView receivedText = (TextView)getView().findViewById(R.id.receivedText);
             receivedText.setText("");
+        } else if (v.getId() == R.id.cameraImageView) {
+            mCameraManager.setEnablePreview(!mCameraManager.isEnablePreview());
         }
 
     }

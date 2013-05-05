@@ -7,6 +7,7 @@
     tools:ignore="ContentDescription,SelectableText" >
 
     <TableLayout
+        android:id="@+id/topLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -79,5 +80,27 @@
         android:layout_above="@+id/controller_move"
         android:layout_alignLeft="@+id/controller_move"
         android:layout_alignRight="@+id/controller_move" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/head_value_text"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/topLayout" >
+
+        <SurfaceView
+            android:id="@+id/cameraSurfaceView"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:layout_weight="0"/>
+        <ImageView
+            android:id="@+id/cameraImageView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:scaleType="centerInside"
+            android:background="#000000"/>
+    </LinearLayout>
 
 </RelativeLayout>

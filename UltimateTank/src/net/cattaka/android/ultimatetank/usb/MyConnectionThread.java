@@ -1,15 +1,11 @@
 
 package net.cattaka.android.ultimatetank.usb;
 
-import java.io.ByteArrayOutputStream;
-
 import net.cattaka.android.ultimatetank.usb.data.MyPacket;
 import net.cattaka.android.ultimatetank.usb.data.OpCode;
 import net.cattaka.libgeppa.data.IPacketFactory;
 import net.cattaka.libgeppa.thread.ConnectionThread;
 import net.cattaka.libgeppa.thread.IConnectionThreadListener;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
 
 public class MyConnectionThread extends ConnectionThread<MyPacket> implements ICommandAdapter {
     private byte[] mBuffer = new byte[0x100];
@@ -50,15 +46,6 @@ public class MyConnectionThread extends ConnectionThread<MyPacket> implements IC
     @Override
     public boolean sendRequestCameraImage() {
         MyPacket packet = new MyPacket(OpCode.REQUEST_CAMERA_IMAGE, 0, mBuffer);
-        return sendPacket(packet);
-    }
-
-    @Override
-    public boolean sendCameraImage(Bitmap bitmap) {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        bitmap.compress(CompressFormat.JPEG, 0, bout);
-        byte[] data = bout.toByteArray();
-        MyPacket packet = new MyPacket(OpCode.REQUEST_CAMERA_IMAGE, data.length, data);
         return sendPacket(packet);
     }
 }

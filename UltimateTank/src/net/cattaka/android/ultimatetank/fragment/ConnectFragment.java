@@ -7,17 +7,16 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import net.cattaka.android.ultimatetank.R;
+import net.cattaka.android.ultimatetank.ServiceCommandAdapter;
 import net.cattaka.android.ultimatetank.db.UltimateTankDbHelper;
 import net.cattaka.android.ultimatetank.dialog.EditAddrresDialog;
 import net.cattaka.android.ultimatetank.dialog.EditAddrresDialog.IEditAddrresDialogListener;
 import net.cattaka.android.ultimatetank.entity.MySocketAddress;
 import net.cattaka.android.ultimatetank.net.RemoteSocketPrepareTask;
 import net.cattaka.android.ultimatetank.usb.DummySocketPrepareTask;
-import net.cattaka.android.ultimatetank.usb.FtDriverSocketPrepareTask;
 import net.cattaka.android.ultimatetank.usb.UsbClass;
 import net.cattaka.libgeppa.data.ConnectionCode;
 import net.cattaka.libgeppa.data.ConnectionState;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -37,8 +36,6 @@ import android.widget.ListView;
 
 public class ConnectFragment extends BaseFragment implements OnClickListener, OnItemClickListener,
         OnItemLongClickListener, IEditAddrresDialogListener {
-    protected static final String ACTION_USB_PERMISSION = "net.cattaka.android.ultimatetank.fragment.action_permission";
-
     protected static final String EXTRA_USB_DEVICE_KEY = "usbDevicekey";
 
     private static class ListItem {
@@ -65,12 +62,6 @@ public class ConnectFragment extends BaseFragment implements OnClickListener, On
                 refleshUsbDeviceList();
             } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
                 refleshUsbDeviceList();
-            } else if (intent.getAction().equals(ACTION_USB_PERMISSION)) {
-                refleshUsbDeviceList();
-                String itemKey = intent.getStringExtra(EXTRA_USB_DEVICE_KEY);
-                if (itemKey != null) {
-                    onSelectUsbItem(itemKey);
-                }
             }
         }
     };
@@ -113,7 +104,6 @@ public class ConnectFragment extends BaseFragment implements OnClickListener, On
             IntentFilter filter = new IntentFilter();
             filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
             filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-            filter.addAction(ACTION_USB_PERMISSION);
             registerReceiver(mUsbReceiver, filter);
         }
     }
@@ -223,17 +213,8 @@ public class ConnectFragment extends BaseFragment implements OnClickListener, On
             // Unexpected behavior
             refleshUsbDeviceList();
         } else {
-            if (usbman.hasPermission(usbDevice)) {
-                // OK
-                FtDriverSocketPrepareTask prepareTask = new FtDriverSocketPrepareTask(usbDevice);
-                getBaseFragmentAdapter().startConnectionThread(prepareTask);
-            } else {
-                // requests permission to use device
-                Intent intent = new Intent(ACTION_USB_PERMISSION);
-                intent.putExtra(EXTRA_USB_DEVICE_KEY, itemKey);
-                PendingIntent pIntent = PendingIntent.getBroadcast(getContext(), 0, intent, 0);
-                usbman.requestPermission(usbDevice, pIntent);
-            }
+            getBaseFragmentAdapter().startConnectionThreadDirect(
+                    new ServiceCommandAdapter(getContext(), itemKey));
         }
     }
 

@@ -28,7 +28,7 @@ import android.view.WindowManager;
 public class MainActivity extends Activity implements IBaseFragmentAdapter {
     private MainActivity me = this;
 
-    private MyConnectionThread mConnectionThread;
+    private ICommandAdapter mCommandAdapter;
 
     private IMySocketPrepareTask mCurrentPrepareTask;
 
@@ -136,11 +136,26 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
 
         mCurrentPrepareTask.setup(this);
 
-        mConnectionThread = new MyConnectionThread(mCurrentPrepareTask, new MyPacketFactory(),
+        mCommandAdapter = new MyConnectionThread(mCurrentPrepareTask, new MyPacketFactory(),
                 mConnectionThreadListener);
 
         try {
-            mConnectionThread.startThread();
+            mCommandAdapter.startThread();
+        } catch (InterruptedException e) {
+            // Impossible
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void startConnectionThreadDirect(ICommandAdapter adapter) {
+        mCurrentPrepareTask = null;
+
+        stopConnectionThread();
+
+        mCommandAdapter = adapter;
+
+        try {
+            mCommandAdapter.startThread();
         } catch (InterruptedException e) {
             // Impossible
             throw new RuntimeException(e);
@@ -148,14 +163,14 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     }
 
     public void stopConnectionThread() {
-        if (mConnectionThread != null) {
+        if (mCommandAdapter != null) {
             try {
-                mConnectionThread.stopThread();
+                mCommandAdapter.stopThread();
             } catch (InterruptedException e) {
                 // Impossible
                 throw new RuntimeException(e);
             }
-            mConnectionThread = null;
+            mCommandAdapter = null;
         }
     }
 
@@ -180,7 +195,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
 
     @Override
     public ICommandAdapter getCommandAdapter() {
-        return mConnectionThread;
+        return mCommandAdapter;
     }
 
     @Override

@@ -31,6 +31,8 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
 
         public void startConnectionThread(IMySocketPrepareTask prepareTask);
 
+        public void startConnectionThreadDirect(ICommandAdapter adapter);
+
         public void replacePrimaryFragment(Fragment fragment, boolean withBackStack);
 
         public ICommandAdapter getCommandAdapter();

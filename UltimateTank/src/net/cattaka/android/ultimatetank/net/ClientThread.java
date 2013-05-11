@@ -9,8 +9,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import net.cattaka.android.ultimatetank.Constants;
-import net.cattaka.android.ultimatetank.usb.data.MyPacket;
-import net.cattaka.android.ultimatetank.usb.data.MyPacketFactory;
+import net.cattaka.android.ultimatetank.common.data.BtPacket;
+import net.cattaka.android.ultimatetank.common.data.BtPacketFactory;
 import android.util.Log;
 
 public class ClientThread extends Thread {
@@ -19,7 +19,7 @@ public class ClientThread extends Thread {
          * Note : This method is called from ClientReceiveThread, it's not UI
          * thread.
          */
-        public void onReceivePacket(ClientThread target, MyPacket packet);
+        public void onReceivePacket(ClientThread target, BtPacket packet);
 
         /**
          * Note : This method is called from this thread, it's not UI thread.
@@ -44,12 +44,12 @@ public class ClientThread extends Thread {
 
         private InputStream mInputStream;
 
-        private MyPacketFactory mPacketFactory;
+        private BtPacketFactory mPacketFactory;
 
         private IClientThreadListener mListener;
 
         public ClientReceiveThread(ClientThread parent, InputStream inputStream,
-                MyPacketFactory packetFactory, IClientThreadListener listener) {
+                BtPacketFactory packetFactory, IClientThreadListener listener) {
             super("ClientReceiveThread:" + parent);
             mParent = parent;
             mInputStream = inputStream;
@@ -62,7 +62,7 @@ public class ClientThread extends Thread {
             super.run();
             try {
                 while (true) {
-                    MyPacket packet = mPacketFactory.readPacket(mInputStream);
+                    BtPacket packet = mPacketFactory.readPacket(mInputStream);
                     if (packet != null) {
                         mListener.onReceivePacket(mParent, packet);
                     }
@@ -92,7 +92,7 @@ public class ClientThread extends Thread {
         super.run();
         ClientReceiveThread receiveThread = null;
         try {
-            MyPacketFactory packetFactory = new MyPacketFactory();
+            BtPacketFactory packetFactory = new BtPacketFactory();
             InputStream in = mSocket.getInputStream();
             OutputStream out = mSocket.getOutputStream();
             { // Creates receiving thread
@@ -107,7 +107,7 @@ public class ClientThread extends Thread {
                 if (event.eventCode == 0) {
                     break;
                 } else if (event.eventCode == 1) {
-                    packetFactory.writePacket(out, (MyPacket)event.data);
+                    packetFactory.writePacket(out, (BtPacket)event.data);
                     out.flush();
                 }
             }
@@ -135,7 +135,7 @@ public class ClientThread extends Thread {
         }
     }
 
-    public void sendPacket(MyPacket packet) {
+    public void sendPacket(BtPacket packet) {
         mEventQueue.add(new MyEvent(1, packet));
     }
 

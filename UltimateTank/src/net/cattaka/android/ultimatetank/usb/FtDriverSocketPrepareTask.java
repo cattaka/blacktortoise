@@ -2,14 +2,13 @@
 package net.cattaka.android.ultimatetank.usb;
 
 import jp.ksksue.driver.serial.FTDriver;
-import net.cattaka.android.ultimatetank.camera.DeviceCameraManager;
-import net.cattaka.android.ultimatetank.camera.ICameraManager;
 import net.cattaka.libgeppa.IRawSocket;
+import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 
-public class FtDriverSocketPrepareTask implements IMySocketPrepareTask {
+public class FtDriverSocketPrepareTask implements IRawSocketPrepareTask {
     private UsbManager mUsbManager;
 
     private UsbDevice mUsbDevice;
@@ -26,17 +25,12 @@ public class FtDriverSocketPrepareTask implements IMySocketPrepareTask {
     @Override
     public IRawSocket prepareRawSocket() {
         FTDriver mFtDriver = new FTDriver(mUsbManager);
-        mFtDriver.setRxTimeout(1000); // This is not effective.
+        mFtDriver.setRxTimeout(1000); // Is this effective?.
         if (mFtDriver.begin(FTDriver.BAUD115200, mUsbDevice)) {
             return new FtDriverSocket(mFtDriver);
         } else {
             return null;
         }
-    }
-
-    @Override
-    public ICameraManager createCameraManager() {
-        return new DeviceCameraManager();
     }
 
 }

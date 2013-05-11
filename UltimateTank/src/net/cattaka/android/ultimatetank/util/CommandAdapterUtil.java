@@ -1,7 +1,7 @@
 
 package net.cattaka.android.ultimatetank.util;
 
-import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
+import net.cattaka.android.ultimatetank.common.IDeviceCommandAdapter;
 
 public class CommandAdapterUtil {
     /**
@@ -12,7 +12,7 @@ public class CommandAdapterUtil {
      * @param turn Value for turn. This must be between -1 and 1. When value is
      *            positive it turns right, when value is negative it turns left.
      */
-    public static void sendMove(ICommandAdapter adapter, float forward, float turn) {
+    public static void sendMove(IDeviceCommandAdapter adapter, float forward, float turn) {
         float leftMotor = Math.min(1, 1 + turn * 2) * forward;
         float rightMotor = Math.min(1, 1 - turn * 2) * forward;
 

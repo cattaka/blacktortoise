@@ -1,5 +1,5 @@
 
-package net.cattaka.android.ultimatetank.usb.data;
+package net.cattaka.android.ultimatetank.common.data;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,7 +7,7 @@ import java.io.OutputStream;
 
 import net.cattaka.libgeppa.data.IPacketFactory;
 
-public class MyPacketFactory implements IPacketFactory<MyPacket> {
+public class BtPacketFactory implements IPacketFactory<BtPacket> {
     public static final byte STX = 0x02;
 
     public static final byte ETX = 0x03;
@@ -21,7 +21,7 @@ public class MyPacketFactory implements IPacketFactory<MyPacket> {
     };
 
     @Override
-    public MyPacket readPacket(InputStream in) throws IOException {
+    public BtPacket readPacket(InputStream in) throws IOException {
         // データ送信
         ConState state = ConState.UNKNOWN;
         byte packetType = 0;
@@ -96,11 +96,11 @@ public class MyPacketFactory implements IPacketFactory<MyPacket> {
             throw new IOException();
         }
 
-        return new MyPacket(OpCode.fromValue(opCode), len, data);
+        return new BtPacket(OpCode.fromValue(opCode), len, data);
     }
 
     @Override
-    public void writePacket(OutputStream out, MyPacket packet) throws IOException {
+    public void writePacket(OutputStream out, BtPacket packet) throws IOException {
         byte len1 = (byte)(0xFF & (packet.getDataLen()));
         byte len2 = (byte)(0xFF & (packet.getDataLen() >> 8));
         byte t = (byte)(0xFF & (PACKET_TYPE_DATA + packet.getOpCode().getValue() + len1 + len2));

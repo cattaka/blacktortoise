@@ -3,21 +3,23 @@ package net.cattaka.android.ultimatetank;
 
 import java.util.Map;
 
+import net.cattaka.android.ultimatetank.common.IDeviceAdapterListener;
+import net.cattaka.android.ultimatetank.common.adapter.BtConnectionAdapter;
+import net.cattaka.android.ultimatetank.common.adapter.LocalDeviceAdapter;
+import net.cattaka.android.ultimatetank.common.data.BtPacket;
+import net.cattaka.android.ultimatetank.common.data.DeviceEventCode;
+import net.cattaka.android.ultimatetank.common.data.DeviceState;
+import net.cattaka.android.ultimatetank.common.data.OpCode;
 import net.cattaka.android.ultimatetank.usb.FtDriverSocketPrepareTask;
-import net.cattaka.android.ultimatetank.usb.MyConnectionThread;
-import net.cattaka.android.ultimatetank.usb.data.MyPacket;
-import net.cattaka.android.ultimatetank.usb.data.MyPacketFactory;
 import net.cattaka.android.ultimatetank.util.AidlUtil;
 import net.cattaka.android.ultimatetank.util.AidlUtil.CallFunction;
-import net.cattaka.libgeppa.data.ConnectionCode;
-import net.cattaka.libgeppa.data.ConnectionState;
-import net.cattaka.libgeppa.thread.IConnectionThreadListener;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Handler;
@@ -25,7 +27,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.SparseArray;
 
-public class UltimateTankService extends Service {
+public class BlackTortoiseService extends Service {
     protected static final String ACTION_USB_PERMISSION = "net.cattaka.android.ultimatetank.fragment.action_permission";
 
     protected static final String EXTRA_USB_DEVICE_KEY = "usbDevicekey";
@@ -49,16 +51,16 @@ public class UltimateTankService extends Service {
     private static Handler sHandler = new Handler() {
         public void handleMessage(android.os.Message msg) {
             Object objs[] = (Object[])msg.obj;
-            UltimateTankService target = (UltimateTankService)objs[0];
-            MyConnectionThread mcThread = target.mConnectionThread;
+            BlackTortoiseService target = (BlackTortoiseService)objs[0];
+            BtConnectionAdapter mcThread = target.mConnectionThread;
             switch (msg.what) {
                 case EVENT_REGISTER_CONNECTION_LISTENER: {
-                    target.mConnectionListeners.append((Integer)objs[1],
-                            (IConnectionListener)objs[2]);
+                    target.mServiceListeners.append((Integer)objs[1],
+                            (IBlackTortoiseServiceListener)objs[2]);
                     break;
                 }
                 case EVENT_UNREGISTER_CONNECTION_LISTENER: {
-                    target.mConnectionListeners.remove((Integer)objs[1]);
+                    target.mServiceListeners.remove((Integer)objs[1]);
                     break;
                 }
                 case EVENT_CONNECT: {
@@ -78,7 +80,7 @@ public class UltimateTankService extends Service {
                                 break;
                             }
                             case EVENT_SEND_PACKET: {
-                                mcThread.sendPacket((MyPacket)objs[1]);
+                                mcThread.sendPacket((BtPacket)objs[1]);
                                 break;
                             }
                             case EVENT_SEND_MOVE: {
@@ -100,7 +102,7 @@ public class UltimateTankService extends Service {
                                 break;
                             }
                             case EVENT_SEND_PACKET: {
-                                mcThread.sendPacket((MyPacket)objs[1]);
+                                mcThread.sendPacket((BtPacket)objs[1]);
                                 break;
                             }
                             case EVENT_SEND_MOVE: {
@@ -121,13 +123,13 @@ public class UltimateTankService extends Service {
         };
     };
 
-    private UltimateTankService me = this;
+    private BlackTortoiseService me = this;
 
-    private MyConnectionThread mConnectionThread;
+    private LocalDeviceAdapter mConnectionThread;
 
     private int mNextConnectionListenerSeq = 1;
 
-    private SparseArray<IConnectionListener> mConnectionListeners;
+    private SparseArray<IBlackTortoiseServiceListener> mServiceListeners;
 
     private BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -140,9 +142,10 @@ public class UltimateTankService extends Service {
         }
     };
 
-    private IBinder mBinder = new IUltimateTankService.Stub() {
+    private IBinder mBinder = new IBlackTortoiseService.Stub() {
         @Override
-        public int registerConnectionListener(IConnectionListener listener) throws RemoteException {
+        public int registerServiceListener(IBlackTortoiseServiceListener listener)
+                throws RemoteException {
             int seq = mNextConnectionListenerSeq++;
             sHandler.obtainMessage(EVENT_REGISTER_CONNECTION_LISTENER, new Object[] {
                     me, seq, listener
@@ -151,7 +154,7 @@ public class UltimateTankService extends Service {
         }
 
         @Override
-        public void unregisterConnectionListener(int seq) throws RemoteException {
+        public void unregisterServiceServiceListener(int seq) throws RemoteException {
             sHandler.obtainMessage(EVENT_UNREGISTER_CONNECTION_LISTENER, new Object[] {
                     me, seq
             }).sendToTarget();
@@ -182,7 +185,7 @@ public class UltimateTankService extends Service {
         }
 
         @Override
-        public boolean sendPacket(MyPacket packet) throws RemoteException {
+        public boolean sendPacket(BtPacket packet) throws RemoteException {
             if (mConnectionThread != null) {
                 sHandler.obtainMessage(EVENT_SEND_PACKET, new Object[] {
                         me, packet
@@ -223,31 +226,39 @@ public class UltimateTankService extends Service {
         }
     };
 
-    private IConnectionThreadListener<MyPacket> mConnectionThreadListener = new IConnectionThreadListener<MyPacket>() {
-
+    private IDeviceAdapterListener mDeviceAdapterListener = new IDeviceAdapterListener() {
         @Override
-        public void onReceive(final MyPacket packet) {
-            AidlUtil.callMethods(mConnectionListeners, new CallFunction<IConnectionListener>() {
-                public boolean run(IConnectionListener item) throws RemoteException {
-                    item.onReceive(packet);
-                    return true;
-                };
-            });
+        public void onReceiveCameraImage(int cameraIdx, Bitmap bitmat) {
+            // Not used.
         }
 
+        public void onReceiveEcho(byte[] data) {
+            final BtPacket packet = new BtPacket(OpCode.ECHO, data.length, data);
+            AidlUtil.callMethods(mServiceListeners,
+                    new CallFunction<IBlackTortoiseServiceListener>() {
+                        public boolean run(IBlackTortoiseServiceListener item)
+                                throws RemoteException {
+                            item.onReceive(packet);
+                            return true;
+                        };
+                    });
+        };
+
         @Override
-        public void onConnectionStateChanged(final ConnectionState state, final ConnectionCode code) {
-            AidlUtil.callMethods(mConnectionListeners, new CallFunction<IConnectionListener>() {
-                public boolean run(IConnectionListener item) throws RemoteException {
-                    item.onConnectionStateChanged(state, code);
-                    return true;
-                };
-            });
+        public void onDeviceStateChanged(final DeviceState state, final DeviceEventCode code) {
+            AidlUtil.callMethods(mServiceListeners,
+                    new CallFunction<IBlackTortoiseServiceListener>() {
+                        public boolean run(IBlackTortoiseServiceListener item)
+                                throws RemoteException {
+                            item.onDeviceStateChanged(state, code);
+                            return true;
+                        };
+                    });
         }
     };
 
-    public UltimateTankService() {
-        mConnectionListeners = new SparseArray<IConnectionListener>();
+    public BlackTortoiseService() {
+        mServiceListeners = new SparseArray<IBlackTortoiseServiceListener>();
     }
 
     @Override
@@ -279,10 +290,9 @@ public class UltimateTankService extends Service {
             // If service already has permission, it start thread.
             FtDriverSocketPrepareTask prepareTask = new FtDriverSocketPrepareTask(usbDevice);
             prepareTask.setup(me);
-            mConnectionThread = new MyConnectionThread(prepareTask, new MyPacketFactory(),
-                    mConnectionThreadListener);
+            mConnectionThread = new LocalDeviceAdapter(mDeviceAdapterListener, true, usbDevice);
             try {
-                mConnectionThread.startThread();
+                mConnectionThread.startAdapter();
             } catch (InterruptedException e) {
                 // Impossible
                 throw new RuntimeException(e);
@@ -299,7 +309,7 @@ public class UltimateTankService extends Service {
     private void disconnect() {
         if (mConnectionThread != null) {
             try {
-                mConnectionThread.stopThread();
+                mConnectionThread.stopAdapter();
             } catch (InterruptedException e) {
                 // Impossible
                 throw new RuntimeException(e);

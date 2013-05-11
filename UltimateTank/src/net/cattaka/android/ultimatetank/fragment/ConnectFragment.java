@@ -7,16 +7,16 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import net.cattaka.android.ultimatetank.R;
-import net.cattaka.android.ultimatetank.ServiceCommandAdapter;
+import net.cattaka.android.ultimatetank.common.data.DeviceEventCode;
+import net.cattaka.android.ultimatetank.common.data.DeviceState;
 import net.cattaka.android.ultimatetank.db.UltimateTankDbHelper;
 import net.cattaka.android.ultimatetank.dialog.EditAddrresDialog;
 import net.cattaka.android.ultimatetank.dialog.EditAddrresDialog.IEditAddrresDialogListener;
 import net.cattaka.android.ultimatetank.entity.MySocketAddress;
-import net.cattaka.android.ultimatetank.net.RemoteSocketPrepareTask;
-import net.cattaka.android.ultimatetank.usb.DummySocketPrepareTask;
+import net.cattaka.android.ultimatetank.seed.BtServiceDeviceAdapterSeed;
+import net.cattaka.android.ultimatetank.seed.DummyDeviceAdapterSeed;
+import net.cattaka.android.ultimatetank.seed.RemoteDeviceAdapterSeed;
 import net.cattaka.android.ultimatetank.usb.UsbClass;
-import net.cattaka.libgeppa.data.ConnectionCode;
-import net.cattaka.libgeppa.data.ConnectionState;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -24,6 +24,8 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -151,8 +153,9 @@ public class ConnectFragment extends BaseFragment implements OnClickListener, On
         if (v.getId() == R.id.addSocketAddressButton) {
             mEditAddrresDialog.show(null);
         } else if (v.getId() == R.id.useDummyButton) {
-            DummySocketPrepareTask prepareTask = new DummySocketPrepareTask();
-            getBaseFragmentAdapter().startConnectionThread(prepareTask);
+            DummyDeviceAdapterSeed seed = new DummyDeviceAdapterSeed(new Handler(
+                    Looper.getMainLooper()));
+            getBaseFragmentAdapter().startDeviceAdapter(seed);
         }
     }
 
@@ -213,21 +216,21 @@ public class ConnectFragment extends BaseFragment implements OnClickListener, On
             // Unexpected behavior
             refleshUsbDeviceList();
         } else {
-            getBaseFragmentAdapter().startConnectionThreadDirect(
-                    new ServiceCommandAdapter(getContext(), itemKey));
+            BtServiceDeviceAdapterSeed seed = new BtServiceDeviceAdapterSeed(itemKey);
+            getBaseFragmentAdapter().startDeviceAdapter(seed);
         }
     }
 
     private void onSelectSocketAddress(MySocketAddress item) {
-        RemoteSocketPrepareTask prepareTask = new RemoteSocketPrepareTask(item.getHostName(),
+        RemoteDeviceAdapterSeed seed = new RemoteDeviceAdapterSeed(item.getHostName(),
                 item.getPort());
-        getBaseFragmentAdapter().startConnectionThread(prepareTask);
+        getBaseFragmentAdapter().startDeviceAdapter(seed);
     }
 
     @Override
-    public void onConnectionStateChanged(ConnectionState state, ConnectionCode code) {
-        super.onConnectionStateChanged(state, code);
-        if (state == ConnectionState.CONNECTED) {
+    public void onDeviceStateChanged(DeviceState state, DeviceEventCode code) {
+        super.onDeviceStateChanged(state, code);
+        if (state == DeviceState.CONNECTED) {
             MainMenuFragment nextFragment = new MainMenuFragment();
             replacePrimaryFragment(nextFragment, false);
         }

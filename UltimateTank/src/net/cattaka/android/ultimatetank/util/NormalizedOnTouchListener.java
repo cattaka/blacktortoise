@@ -1,5 +1,5 @@
 
-package net.cattaka.android.ultimatetank;
+package net.cattaka.android.ultimatetank.util;
 
 import android.view.MotionEvent;
 import android.view.View;

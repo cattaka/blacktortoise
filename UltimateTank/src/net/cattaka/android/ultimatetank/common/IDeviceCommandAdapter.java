@@ -1,19 +1,15 @@
 
-package net.cattaka.android.ultimatetank.usb;
+package net.cattaka.android.ultimatetank.common;
 
-import net.cattaka.android.ultimatetank.usb.data.MyPacket;
+import net.cattaka.android.ultimatetank.common.data.BtPacket;
 import net.cattaka.libgeppa.thread.ConnectionThread;
 
-public interface ICommandAdapter {
-
-    public void startThread() throws InterruptedException;
-
-    public void stopThread() throws InterruptedException;
+public interface IDeviceCommandAdapter {
 
     /**
      * @see ConnectionThread#sendPacket(net.cattaka.libgeppa.data.IPacket)
      */
-    public boolean sendPacket(MyPacket packet);
+    public boolean sendPacket(BtPacket packet);
 
     /**
      * @param leftMotor1 Input value 1 of left motor's driver

@@ -1,11 +1,11 @@
 
-package net.cattaka.android.ultimatetank.usb.data;
+package net.cattaka.android.ultimatetank.common.data;
 
 import net.cattaka.libgeppa.data.IPacket;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class MyPacket implements IPacket, Parcelable {
+public class BtPacket implements IPacket, Parcelable {
     private static final long serialVersionUID = 1L;
 
     private OpCode opCode;
@@ -14,10 +14,10 @@ public class MyPacket implements IPacket, Parcelable {
 
     private byte[] data;
 
-    private MyPacket() {
+    private BtPacket() {
     }
 
-    public MyPacket(OpCode opCode, int dataLen, byte[] data) {
+    public BtPacket(OpCode opCode, int dataLen, byte[] data) {
         super();
         this.opCode = opCode;
         this.dataLen = dataLen;
@@ -60,15 +60,15 @@ public class MyPacket implements IPacket, Parcelable {
         dest.writeByteArray(data, 0, dataLen);
     }
 
-    public static final Parcelable.Creator<MyPacket> CREATOR = new Parcelable.Creator<MyPacket>() {
+    public static final Parcelable.Creator<BtPacket> CREATOR = new Parcelable.Creator<BtPacket>() {
         @Override
-        public MyPacket[] newArray(int size) {
-            return new MyPacket[size];
+        public BtPacket[] newArray(int size) {
+            return new BtPacket[size];
         }
 
         @Override
-        public MyPacket createFromParcel(Parcel source) {
-            MyPacket p = new MyPacket();
+        public BtPacket createFromParcel(Parcel source) {
+            BtPacket p = new BtPacket();
             p.opCode = OpCode.fromValue(source.readByte());
             p.dataLen = source.readInt();
             p.data = new byte[p.dataLen];

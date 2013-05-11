@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import net.cattaka.android.ultimatetank.Constants;
+import net.cattaka.android.ultimatetank.common.data.BtPacket;
 import net.cattaka.android.ultimatetank.net.ClientThread.IClientThreadListener;
 import net.cattaka.android.ultimatetank.net.data.SocketState;
-import net.cattaka.android.ultimatetank.usb.data.MyPacket;
 import android.os.Handler;
 import android.util.Log;
 
@@ -33,7 +33,7 @@ public class ServerThread extends Thread {
 
         public void onSocketStateChanged(SocketState socketState);
 
-        public void onReceivePacket(ClientThread from, MyPacket packet);
+        public void onReceivePacket(ClientThread from, BtPacket packet);
     }
 
     private Handler mHandler = new Handler() {
@@ -50,7 +50,7 @@ public class ServerThread extends Thread {
                 mListener.onClientDisconnected(target);
             } else if (msg.what == EVENT_ON_RECEIVE_PACKET) {
                 Object[] objs = (Object[])msg.obj;
-                mListener.onReceivePacket((ClientThread)objs[0], (MyPacket)objs[1]);
+                mListener.onReceivePacket((ClientThread)objs[0], (BtPacket)objs[1]);
             } else if (msg.what == EVENT_CLEAN_UP) {
                 for (ClientThread ct : mClientThreads) {
                     ct.stopThread();
@@ -62,7 +62,7 @@ public class ServerThread extends Thread {
     private IClientThreadListener mClientThreadListener = new IClientThreadListener() {
 
         @Override
-        public void onReceivePacket(ClientThread target, MyPacket packet) {
+        public void onReceivePacket(ClientThread target, BtPacket packet) {
             mHandler.obtainMessage(EVENT_ON_RECEIVE_PACKET, new Object[] {
                     target, packet
             }).sendToTarget();
@@ -148,7 +148,7 @@ public class ServerThread extends Thread {
         return mClientThreads;
     }
 
-    public void sendPacket(MyPacket packet) {
+    public void sendPacket(BtPacket packet) {
         for (ClientThread ct : mClientThreads) {
             ct.sendPacket(packet);
         }

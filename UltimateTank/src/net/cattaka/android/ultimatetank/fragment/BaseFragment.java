@@ -3,12 +3,11 @@ package net.cattaka.android.ultimatetank.fragment;
 
 import net.cattaka.android.ultimatetank.camera.ICameraManager;
 import net.cattaka.android.ultimatetank.camera.ICameraManagerAdapter;
-import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
-import net.cattaka.android.ultimatetank.usb.IMySocketPrepareTask;
-import net.cattaka.android.ultimatetank.usb.data.MyPacket;
-import net.cattaka.libgeppa.data.ConnectionCode;
-import net.cattaka.libgeppa.data.ConnectionState;
-import net.cattaka.libgeppa.thread.IConnectionThreadListener;
+import net.cattaka.android.ultimatetank.common.IDeviceAdapterListener;
+import net.cattaka.android.ultimatetank.common.IDeviceCommandAdapter;
+import net.cattaka.android.ultimatetank.common.data.DeviceEventCode;
+import net.cattaka.android.ultimatetank.common.data.DeviceState;
+import net.cattaka.android.ultimatetank.seed.IDeviceAdapterSeed;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -21,7 +20,7 @@ import android.content.IntentFilter;
  * 
  * @author cattaka
  */
-public class BaseFragment extends Fragment implements IConnectionThreadListener<MyPacket> {
+public class BaseFragment extends Fragment implements IDeviceAdapterListener {
     public interface IBaseFragmentAdapter {
         public Object getSystemService(String name);
 
@@ -29,20 +28,17 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
 
         public void unregisterReceiver(BroadcastReceiver receiver);
 
-        public void startConnectionThread(IMySocketPrepareTask prepareTask);
-
-        public void startConnectionThreadDirect(ICommandAdapter adapter);
+        public void startDeviceAdapter(IDeviceAdapterSeed seed);
 
         public void replacePrimaryFragment(Fragment fragment, boolean withBackStack);
 
-        public ICommandAdapter getCommandAdapter();
+        public IDeviceCommandAdapter getCommandAdapter();
 
         public ICameraManager createCameraManager();
 
-        public boolean registerConnectionThreadListener(IConnectionThreadListener<MyPacket> listener);
+        public boolean registerDeviceAdapterListener(IDeviceAdapterListener listener);
 
-        public boolean unregisterConnectionThreadListener(
-                IConnectionThreadListener<MyPacket> listener);
+        public boolean unregisterDeviceAdapterListener(IDeviceAdapterListener listener);
 
         public void setKeepScreen(boolean flag);
     }
@@ -54,13 +50,13 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
     @Override
     public void onResume() {
         super.onResume();
-        getBaseFragmentAdapter().registerConnectionThreadListener(this);
+        getBaseFragmentAdapter().registerDeviceAdapterListener(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        getBaseFragmentAdapter().unregisterConnectionThreadListener(this);
+        getBaseFragmentAdapter().unregisterDeviceAdapterListener(this);
     }
 
     public Context getContext() {
@@ -69,13 +65,19 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
 
     /** Please override if you need. */
     @Override
-    public void onConnectionStateChanged(ConnectionState state, ConnectionCode code) {
+    public void onDeviceStateChanged(DeviceState state, DeviceEventCode code) {
         // none
     }
 
     /** Please override if you need. */
     @Override
-    public void onReceive(MyPacket packet) {
+    public void onReceiveEcho(byte[] data) {
+        // none
+    }
+
+    /** Please override if you need. */
+    @Override
+    public void onReceiveCameraImage(int cameraIdx, android.graphics.Bitmap bitmat) {
         // none
     }
 
@@ -87,11 +89,6 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
     /** Do only delegation */
     public void unregisterReceiver(BroadcastReceiver receiver) {
         getActivity().unregisterReceiver(receiver);
-    }
-
-    /** Do only delegation */
-    public void connectUsbDevice(IMySocketPrepareTask prepareTask) {
-        getBaseFragmentAdapter().startConnectionThread(prepareTask);
     }
 
     /** Do only delegation */
@@ -108,16 +105,16 @@ public class BaseFragment extends Fragment implements IConnectionThreadListener<
     }
 
     /** Do only delegation */
-    public boolean registerConnectionThreadListener(IConnectionThreadListener<MyPacket> listener) {
-        return getBaseFragmentAdapter().registerConnectionThreadListener(listener);
+    public boolean registerDeviceAdapterListener(IDeviceAdapterListener listener) {
+        return getBaseFragmentAdapter().registerDeviceAdapterListener(listener);
     }
 
     /** Do only delegation */
-    public boolean unregisterConnectionThreadListener(IConnectionThreadListener<MyPacket> listener) {
-        return getBaseFragmentAdapter().unregisterConnectionThreadListener(listener);
+    public boolean unregisterDeviceAdapterListener(IDeviceAdapterListener listener) {
+        return getBaseFragmentAdapter().unregisterDeviceAdapterListener(listener);
     }
 
-    public ICommandAdapter getCommandAdapter() {
+    public IDeviceCommandAdapter getCommandAdapter() {
         return getBaseFragmentAdapter().getCommandAdapter();
     }
 

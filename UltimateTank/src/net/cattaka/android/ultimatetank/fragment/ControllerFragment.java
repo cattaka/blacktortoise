@@ -3,14 +3,14 @@ package net.cattaka.android.ultimatetank.fragment;
 
 import java.util.Locale;
 
-import net.cattaka.android.ultimatetank.NormalizedOnTouchListener;
 import net.cattaka.android.ultimatetank.R;
 import net.cattaka.android.ultimatetank.camera.ICameraManager;
 import net.cattaka.android.ultimatetank.camera.ICameraManagerAdapter;
-import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
-import net.cattaka.android.ultimatetank.usb.data.MyPacket;
-import net.cattaka.android.ultimatetank.usb.data.OpCode;
+import net.cattaka.android.ultimatetank.common.IDeviceCommandAdapter;
+import net.cattaka.android.ultimatetank.common.data.BtPacket;
+import net.cattaka.android.ultimatetank.common.data.OpCode;
 import net.cattaka.android.ultimatetank.util.CommandAdapterUtil;
+import net.cattaka.android.ultimatetank.util.NormalizedOnTouchListener;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -45,7 +45,7 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
                         mHeadValueText.setText(text);
                     }
                     { // Sends command
-                        ICommandAdapter adapter = getCommandAdapter();
+                        IDeviceCommandAdapter adapter = getCommandAdapter();
                         if (adapter != null) {
                             adapter.sendHead(yaw, pitch);
                         }
@@ -63,7 +63,7 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
                         mMoveValueText.setText(text);
                     }
                     { // Sends command
-                        ICommandAdapter adapter = getCommandAdapter();
+                        IDeviceCommandAdapter adapter = getCommandAdapter();
                         if (adapter != null) {
                             CommandAdapterUtil.sendMove(adapter, forward, turn);
                         }
@@ -133,11 +133,11 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.sendButton) {
-            ICommandAdapter adapter = getCommandAdapter();
+            IDeviceCommandAdapter adapter = getCommandAdapter();
             if (adapter != null) {
                 EditText sendText = (EditText)getView().findViewById(R.id.sendEdit);
                 byte[] data = String.valueOf(sendText.getText()).getBytes();
-                MyPacket packet = new MyPacket(OpCode.ECHO, data.length, data);
+                BtPacket packet = new BtPacket(OpCode.ECHO, data.length, data);
                 adapter.sendPacket(packet);
             }
         } else if (v.getId() == R.id.clearButton) {
@@ -150,14 +150,10 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
     }
 
     @Override
-    public void onReceive(MyPacket packet) {
-        super.onReceive(packet);
-        if (packet.getOpCode() == OpCode.ECHO) {
-            byte[] data = new byte[packet.getDataLen()];
-            System.arraycopy(packet.getData(), 0, data, 0, data.length);
-            String str = new String(data);
-            TextView receivedText = (TextView)getView().findViewById(R.id.receivedText);
-            receivedText.setText(receivedText.getText() + str);
-        }
+    public void onReceiveEcho(byte[] data) {
+        super.onReceiveEcho(data);
+        String str = new String(data);
+        TextView receivedText = (TextView)getView().findViewById(R.id.receivedText);
+        receivedText.setText(receivedText.getText() + str);
     }
 }

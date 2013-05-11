@@ -1,14 +1,14 @@
 
 package net.cattaka.android.ultimatetank;
 
-import net.cattaka.android.ultimatetank.IConnectionListener;
-import net.cattaka.android.ultimatetank.usb.data.MyPacket;
+import net.cattaka.android.ultimatetank.IBlackTortoiseServiceListener;
+import net.cattaka.android.ultimatetank.common.data.BtPacket;
 
-interface IUltimateTankService {
+interface IBlackTortoiseService {
 
-    int registerConnectionListener(IConnectionListener listener);
+    int registerServiceListener(IBlackTortoiseServiceListener listener);
 
-    void unregisterConnectionListener(int seq);
+    void unregisterServiceServiceListener(int seq);
 
     void connect(in String deviceKey);
 
@@ -17,7 +17,7 @@ interface IUltimateTankService {
     /**
      * @see ConnectionThread#sendPacket(net.cattaka.libgeppa.data.IPacket)
      */
-    boolean sendPacket(in MyPacket packet);
+    boolean sendPacket(in BtPacket packet);
 
     /**
      * @param leftMotor1 Input value 1 of left motor's driver

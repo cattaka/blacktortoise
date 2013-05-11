@@ -1,17 +1,14 @@
 
 package net.cattaka.android.ultimatetank.camera;
 
+import net.cattaka.android.ultimatetank.common.IDeviceAdapterListener;
+import net.cattaka.android.ultimatetank.common.IDeviceCommandAdapter;
+import net.cattaka.android.ultimatetank.common.data.DeviceEventCode;
+import net.cattaka.android.ultimatetank.common.data.DeviceState;
 import net.cattaka.android.ultimatetank.fragment.BaseFragment.IBaseFragmentAdapter;
-import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
-import net.cattaka.android.ultimatetank.usb.data.MyPacket;
-import net.cattaka.android.ultimatetank.usb.data.OpCode;
-import net.cattaka.libgeppa.data.ConnectionCode;
-import net.cattaka.libgeppa.data.ConnectionState;
-import net.cattaka.libgeppa.thread.IConnectionThreadListener;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 
-public class RemoteCameraManager implements ICameraManager, IConnectionThreadListener<MyPacket> {
+public class RemoteCameraManager implements ICameraManager, IDeviceAdapterListener {
     private ICameraManagerAdapter mCameraManagerAdapter;
 
     private IBaseFragmentAdapter mBaseFragmentAdapter;
@@ -32,13 +29,13 @@ public class RemoteCameraManager implements ICameraManager, IConnectionThreadLis
 
     @Override
     public void onResume() {
-        mBaseFragmentAdapter.registerConnectionThreadListener(this);
+        mBaseFragmentAdapter.registerDeviceAdapterListener(this);
         setEnablePreview(mEnablePreview);
     }
 
     @Override
     public void onPause() {
-        mBaseFragmentAdapter.unregisterConnectionThreadListener(this);
+        mBaseFragmentAdapter.unregisterDeviceAdapterListener(this);
     }
 
     @Override
@@ -50,7 +47,7 @@ public class RemoteCameraManager implements ICameraManager, IConnectionThreadLis
     public void setEnablePreview(boolean enablePreview) {
         mEnablePreview = enablePreview;
         if (mEnablePreview && !mRequested) {
-            ICommandAdapter commandAdapter = mBaseFragmentAdapter.getCommandAdapter();
+            IDeviceCommandAdapter commandAdapter = mBaseFragmentAdapter.getCommandAdapter();
             if (commandAdapter != null) {
                 mRequested = commandAdapter.sendRequestCameraImage();
             }
@@ -58,24 +55,21 @@ public class RemoteCameraManager implements ICameraManager, IConnectionThreadLis
     }
 
     @Override
-    public void onConnectionStateChanged(ConnectionState state, ConnectionCode code) {
+    public void onDeviceStateChanged(DeviceState state, DeviceEventCode code) {
         // none
     }
 
     @Override
-    public void onReceive(MyPacket packet) {
-        if (packet.getOpCode() == OpCode.CAMERA_IMAGE) {
-            if (mEnablePreview) {
-                Bitmap bitmap = BitmapFactory.decodeByteArray(packet.getData(), 0,
-                        packet.getDataLen());
-                if (bitmap != null) {
-                    mCameraManagerAdapter.onPictureTaken(bitmap, this);
-                    ICommandAdapter commandAdapter = mBaseFragmentAdapter.getCommandAdapter();
-                    if (commandAdapter != null) {
-                        mRequested = commandAdapter.sendRequestCameraImage();
-                    }
-                }
-            }
+    public void onReceiveEcho(byte[] data) {
+        // none
+    }
+
+    @Override
+    public void onReceiveCameraImage(int cameraIdx, Bitmap bitmap) {
+        mCameraManagerAdapter.onPictureTaken(bitmap, this);
+        IDeviceCommandAdapter commandAdapter = mBaseFragmentAdapter.getCommandAdapter();
+        if (commandAdapter != null) {
+            mRequested = commandAdapter.sendRequestCameraImage();
         }
     }
 }

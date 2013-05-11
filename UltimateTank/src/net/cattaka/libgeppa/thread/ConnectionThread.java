@@ -229,4 +229,9 @@ public class ConnectionThread<T extends IPacket> {
             return false;
         }
     }
+
+    public ConnectionState getLastConnectionState() {
+        return mLastConnectionState;
+    }
+
 }

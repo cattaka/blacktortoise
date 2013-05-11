@@ -5,21 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.cattaka.android.ultimatetank.camera.ICameraManager;
+import net.cattaka.android.ultimatetank.common.IDeviceAdapter;
+import net.cattaka.android.ultimatetank.common.IDeviceAdapterListener;
+import net.cattaka.android.ultimatetank.common.IDeviceCommandAdapter;
+import net.cattaka.android.ultimatetank.common.data.DeviceEventCode;
+import net.cattaka.android.ultimatetank.common.data.DeviceState;
 import net.cattaka.android.ultimatetank.fragment.BaseFragment.IBaseFragmentAdapter;
 import net.cattaka.android.ultimatetank.fragment.ConnectFragment;
-import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
-import net.cattaka.android.ultimatetank.usb.IMySocketPrepareTask;
-import net.cattaka.android.ultimatetank.usb.MyConnectionThread;
-import net.cattaka.android.ultimatetank.usb.data.MyPacket;
-import net.cattaka.android.ultimatetank.usb.data.MyPacketFactory;
-import net.cattaka.libgeppa.data.ConnectionCode;
-import net.cattaka.libgeppa.data.ConnectionState;
-import net.cattaka.libgeppa.thread.IConnectionThreadListener;
+import net.cattaka.android.ultimatetank.seed.IDeviceAdapterSeed;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.Menu;
@@ -28,26 +27,33 @@ import android.view.WindowManager;
 public class MainActivity extends Activity implements IBaseFragmentAdapter {
     private MainActivity me = this;
 
-    private ICommandAdapter mCommandAdapter;
+    private IDeviceAdapter mDeviceAdapter;
 
-    private IMySocketPrepareTask mCurrentPrepareTask;
+    private IDeviceAdapterSeed mDeviceAdapterSeed;
 
-    private List<IConnectionThreadListener<MyPacket>> mConnectionThreadListeners;
+    private List<IDeviceAdapterListener> mDeviceAdapterListeners;
 
-    private IConnectionThreadListener<MyPacket> mConnectionThreadListener = new IConnectionThreadListener<MyPacket>() {
+    private IDeviceAdapterListener mConnectionThreadListener = new IDeviceAdapterListener() {
         private ProgressDialog nowConnectiondDialog;
 
         @Override
-        public void onReceive(MyPacket packet) {
-            { // Notifies event to children
-                for (IConnectionThreadListener<MyPacket> listener : mConnectionThreadListeners) {
-                    listener.onReceive(packet);
-                }
+        public void onReceiveEcho(byte[] data) {
+            // Notifies event to children
+            for (IDeviceAdapterListener listener : mDeviceAdapterListeners) {
+                listener.onReceiveEcho(data);
             }
         }
 
         @Override
-        public void onConnectionStateChanged(ConnectionState state, ConnectionCode code) {
+        public void onReceiveCameraImage(int cameraIdx, Bitmap bitmap) {
+            // Notifies event to children
+            for (IDeviceAdapterListener listener : mDeviceAdapterListeners) {
+                listener.onReceiveCameraImage(cameraIdx, bitmap);
+            }
+        }
+
+        @Override
+        public void onDeviceStateChanged(DeviceState state, DeviceEventCode code) {
             // if (state == ConnectionState.CLOSED) {
             // FragmentManager fm = getFragmentManager();
             // for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
@@ -56,7 +62,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
             // ConnectFragment nextFragment = new ConnectFragment();
             // replacePrimaryFragment(nextFragment, false);
             // }
-            if (state == ConnectionState.CONNECTING) {
+            if (state == DeviceState.CONNECTING) {
                 if (nowConnectiondDialog == null) {
                     nowConnectiondDialog = new ProgressDialog(me);
                     nowConnectiondDialog.setMessage(me.getText(R.string.msg_now_connecting));
@@ -79,8 +85,8 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
                 }
             }
             { // Notifies event to children
-                for (IConnectionThreadListener<MyPacket> listener : mConnectionThreadListeners) {
-                    listener.onConnectionStateChanged(state, code);
+                for (IDeviceAdapterListener listener : mDeviceAdapterListeners) {
+                    listener.onDeviceStateChanged(state, code);
                 }
             }
         }
@@ -93,7 +99,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
 
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
 
-        mConnectionThreadListeners = new ArrayList<IConnectionThreadListener<MyPacket>>();
+        mDeviceAdapterListeners = new ArrayList<IDeviceAdapterListener>();
 
         if (getFragmentManager().findFragmentById(R.id.primaryFragment) == null) {
             ConnectFragment fragment = new ConnectFragment();
@@ -117,8 +123,8 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     protected void onResume() {
         super.onResume();
         { // If last connected device exists, start conectionThread again.
-            if (mCurrentPrepareTask != null) {
-                startConnectionThread(mCurrentPrepareTask);
+            if (mDeviceAdapterSeed != null) {
+                startDeviceAdapter(mDeviceAdapterSeed);
             }
         }
     }
@@ -129,33 +135,15 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
         stopConnectionThread();
     }
 
-    public void startConnectionThread(IMySocketPrepareTask prepareTask) {
-        mCurrentPrepareTask = prepareTask;
+    public void startDeviceAdapter(IDeviceAdapterSeed deviceAdapterSeed) {
+        mDeviceAdapterSeed = deviceAdapterSeed;
 
         stopConnectionThread();
 
-        mCurrentPrepareTask.setup(this);
-
-        mCommandAdapter = new MyConnectionThread(mCurrentPrepareTask, new MyPacketFactory(),
-                mConnectionThreadListener);
+        mDeviceAdapter = mDeviceAdapterSeed.createDeviceAdapter(this, mConnectionThreadListener);
 
         try {
-            mCommandAdapter.startThread();
-        } catch (InterruptedException e) {
-            // Impossible
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void startConnectionThreadDirect(ICommandAdapter adapter) {
-        mCurrentPrepareTask = null;
-
-        stopConnectionThread();
-
-        mCommandAdapter = adapter;
-
-        try {
-            mCommandAdapter.startThread();
+            mDeviceAdapter.startAdapter();
         } catch (InterruptedException e) {
             // Impossible
             throw new RuntimeException(e);
@@ -163,14 +151,14 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     }
 
     public void stopConnectionThread() {
-        if (mCommandAdapter != null) {
+        if (mDeviceAdapter != null) {
             try {
-                mCommandAdapter.stopThread();
+                mDeviceAdapter.stopAdapter();
             } catch (InterruptedException e) {
                 // Impossible
                 throw new RuntimeException(e);
             }
-            mCommandAdapter = null;
+            mDeviceAdapter = null;
         }
     }
 
@@ -186,22 +174,22 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
 
     @Override
     public ICameraManager createCameraManager() {
-        if (mCurrentPrepareTask != null) {
-            return mCurrentPrepareTask.createCameraManager();
+        if (mDeviceAdapterSeed != null && mDeviceAdapter != null) {
+            return mDeviceAdapterSeed.createCameraManager();
         } else {
             return null;
         }
     }
 
     @Override
-    public ICommandAdapter getCommandAdapter() {
-        return mCommandAdapter;
+    public IDeviceCommandAdapter getCommandAdapter() {
+        return mDeviceAdapter;
     }
 
     @Override
-    public boolean registerConnectionThreadListener(IConnectionThreadListener<MyPacket> listener) {
-        if (!mConnectionThreadListeners.contains(listener)) {
-            mConnectionThreadListeners.add(listener);
+    public boolean registerDeviceAdapterListener(IDeviceAdapterListener listener) {
+        if (!mDeviceAdapterListeners.contains(listener)) {
+            mDeviceAdapterListeners.add(listener);
             return true;
         } else {
             return false;
@@ -209,8 +197,8 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     }
 
     @Override
-    public boolean unregisterConnectionThreadListener(IConnectionThreadListener<MyPacket> listener) {
-        return mConnectionThreadListeners.remove(listener);
+    public boolean unregisterDeviceAdapterListener(IDeviceAdapterListener listener) {
+        return mDeviceAdapterListeners.remove(listener);
     }
 
     @Override

@@ -10,13 +10,13 @@ import java.util.Set;
 import net.cattaka.android.ultimatetank.R;
 import net.cattaka.android.ultimatetank.camera.ICameraManager;
 import net.cattaka.android.ultimatetank.camera.ICameraManagerAdapter;
+import net.cattaka.android.ultimatetank.common.IDeviceCommandAdapter;
+import net.cattaka.android.ultimatetank.common.data.BtPacket;
+import net.cattaka.android.ultimatetank.common.data.OpCode;
 import net.cattaka.android.ultimatetank.net.ClientThread;
 import net.cattaka.android.ultimatetank.net.ServerThread;
 import net.cattaka.android.ultimatetank.net.ServerThread.IServerThreadListener;
 import net.cattaka.android.ultimatetank.net.data.SocketState;
-import net.cattaka.android.ultimatetank.usb.ICommandAdapter;
-import net.cattaka.android.ultimatetank.usb.data.MyPacket;
-import net.cattaka.android.ultimatetank.usb.data.OpCode;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.os.Bundle;
@@ -54,7 +54,7 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
          * When receive packet from remote client, pass it to USB device.
          */
         @Override
-        public void onReceivePacket(ClientThread from, MyPacket packet) {
+        public void onReceivePacket(ClientThread from, BtPacket packet) {
             getCommandAdapter().sendPacket(packet);
             if (packet.getOpCode() == OpCode.REQUEST_CAMERA_IMAGE) {
                 synchronized (mRequestedCameraImageClients) {
@@ -104,9 +104,10 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
                 synchronized (mRequestedCameraImageClients) {
                     if (mRequestedCameraImageClients.size() > 0) {
                         ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                        bout.write(0); // cameraIdx = 0
                         bitmap.compress(CompressFormat.JPEG, 50, bout);
                         byte[] data = bout.toByteArray();
-                        MyPacket packet = new MyPacket(OpCode.CAMERA_IMAGE, data.length, data);
+                        BtPacket packet = new BtPacket(OpCode.CAMERA_IMAGE, data.length, data);
                         for (ClientThread ct : mRequestedCameraImageClients) {
                             ct.sendPacket(packet);
                         }
@@ -151,11 +152,11 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.sendButton) {
-            ICommandAdapter adapter = getCommandAdapter();
+            IDeviceCommandAdapter adapter = getCommandAdapter();
             if (adapter != null) {
                 EditText sendText = (EditText)getView().findViewById(R.id.sendEdit);
                 byte[] data = String.valueOf(sendText.getText()).getBytes();
-                MyPacket packet = new MyPacket(OpCode.ECHO, data.length, data);
+                BtPacket packet = new BtPacket(OpCode.ECHO, data.length, data);
                 adapter.sendPacket(packet);
             }
         } else if (v.getId() == R.id.clearButton) {
@@ -168,11 +169,9 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
     }
 
     @Override
-    public void onReceive(MyPacket packet) {
-        super.onReceive(packet);
-        if (packet.getOpCode() == OpCode.ECHO) {
-            mServerThread.sendPacket(packet);
-        }
+    public void onReceiveEcho(byte[] data) {
+        super.onReceiveEcho(data);
+        mServerThread.sendPacket(new BtPacket(OpCode.ECHO, data.length, data));
     }
 
     public void refleshRomoteControllerList() {

@@ -10,7 +10,6 @@ import net.cattaka.android.ultimatetank.common.data.BtPacket;
 import net.cattaka.android.ultimatetank.common.data.DeviceEventCode;
 import net.cattaka.android.ultimatetank.common.data.DeviceState;
 import net.cattaka.android.ultimatetank.common.data.OpCode;
-import net.cattaka.android.ultimatetank.usb.FtDriverSocketPrepareTask;
 import net.cattaka.android.ultimatetank.util.AidlUtil;
 import net.cattaka.android.ultimatetank.util.AidlUtil.CallFunction;
 import android.app.PendingIntent;
@@ -288,9 +287,8 @@ public class BlackTortoiseService extends Service {
         UsbDevice usbDevice = devices.get(deviceKey);
         if (usbManager.hasPermission(usbDevice)) {
             // If service already has permission, it start thread.
-            FtDriverSocketPrepareTask prepareTask = new FtDriverSocketPrepareTask(usbDevice);
-            prepareTask.setup(me);
-            mConnectionThread = new LocalDeviceAdapter(mDeviceAdapterListener, true, usbDevice);
+            mConnectionThread = new LocalDeviceAdapter(mDeviceAdapterListener, true, usbManager,
+                    usbDevice);
             try {
                 mConnectionThread.startAdapter();
             } catch (InterruptedException e) {

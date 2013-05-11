@@ -8,6 +8,7 @@ import net.cattaka.android.ultimatetank.common.IDeviceAdapterListener;
 import net.cattaka.android.ultimatetank.common.adapter.LocalDeviceAdapter;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 
 public class LocalDeviceAdapterSeed implements IDeviceAdapterSeed {
     private UsbDevice mUsbDevice;
@@ -19,7 +20,9 @@ public class LocalDeviceAdapterSeed implements IDeviceAdapterSeed {
 
     @Override
     public IDeviceAdapter createDeviceAdapter(Context context, IDeviceAdapterListener listener) {
-        return new LocalDeviceAdapter(listener, true, mUsbDevice);
+        UsbManager usbManager = (UsbManager)context.getSystemService(Context.USB_SERVICE);
+        LocalDeviceAdapter adapter = new LocalDeviceAdapter(listener, true, usbManager, mUsbDevice);
+        return adapter;
     }
 
     @Override

@@ -15,32 +15,18 @@ import android.view.SurfaceHolder;
 public class DeviceCameraManager implements ICameraManager {
     private SurfaceHolder.Callback mSurfaceListener = new SurfaceHolder.Callback() {
         public void surfaceCreated(SurfaceHolder holder) {
-            if (mCamera == null) {
-                mCamera = Camera.open();
-                try {
-                    mCamera.setPreviewDisplay(holder);
-                } catch (IOException e) {
-                    // Ignore
-                    Log.e(Constants.TAG, e.getMessage(), e);
-                }
-                PreviewCallbackEx previewCallback = new PreviewCallbackEx(mCamera, true, true);
-                mCamera.setPreviewCallback(previewCallback);
-                if (mEnablePreview) {
-                    mCamera.startPreview();
-                }
-            }
+            mSurfaceExist = true;
+            updateCameraState();
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
-            if (mCamera != null) {
-                mCamera.setPreviewCallback(null);
-                mCamera.stopPreview();
-                mCamera.release();
-                mCamera = null;
-            }
+            mSurfaceExist = false;
+            updateCameraState();
         }
 
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            mSurfaceExist = true;
+            updateCameraState();
         }
     };
 
@@ -83,6 +69,10 @@ public class DeviceCameraManager implements ICameraManager {
 
     private boolean mEnablePreview;
 
+    private boolean mSurfaceExist;
+
+    private boolean mResumed;
+
     private SurfaceHolder mSurfaceHolder;
 
     public DeviceCameraManager() {
@@ -99,10 +89,14 @@ public class DeviceCameraManager implements ICameraManager {
     public void onResume() {
         mSurfaceHolder = mAdapter.getSurfaceView().getHolder();
         mSurfaceHolder.addCallback(mSurfaceListener);
+        mResumed = true;
+        updateCameraState();
     }
 
     @Override
     public void onPause() {
+        mResumed = false;
+        updateCameraState();
         mSurfaceHolder.removeCallback(mSurfaceListener);
     }
 
@@ -114,11 +108,31 @@ public class DeviceCameraManager implements ICameraManager {
     @Override
     public void setEnablePreview(boolean enablePreview) {
         mEnablePreview = enablePreview;
-        if (mCamera != null) {
-            if (mEnablePreview) {
+        updateCameraState();
+    }
+
+    public void updateCameraState() {
+        if (mEnablePreview && mSurfaceExist && mResumed) {
+            if (mCamera == null) {
+                mCamera = Camera.open();
+                try {
+                    mCamera.setPreviewDisplay(mSurfaceHolder);
+                } catch (IOException e) {
+                    // Ignore
+                    Log.e(Constants.TAG, e.getMessage(), e);
+                }
+                PreviewCallbackEx previewCallback = new PreviewCallbackEx(mCamera, true, true);
+                mCamera.getParameters().setPreviewFpsRange(5, 10);
+                mCamera.getParameters().setPreviewSize(320, 240);
+                mCamera.setPreviewCallback(previewCallback);
                 mCamera.startPreview();
-            } else {
+            }
+        } else {
+            if (mCamera != null) {
+                mCamera.setPreviewCallback(null);
                 mCamera.stopPreview();
+                mCamera.release();
+                mCamera = null;
             }
         }
     }

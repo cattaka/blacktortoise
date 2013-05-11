@@ -12,7 +12,6 @@ import net.cattaka.libgeppa.data.ConnectionCode;
 import net.cattaka.libgeppa.data.ConnectionState;
 import net.cattaka.libgeppa.data.IPacket;
 import net.cattaka.libgeppa.data.IPacketFactory;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -31,8 +30,6 @@ public class ConnectionThread<T extends IPacket> {
 
     public interface IRawSocketPrepareTask {
         public IRawSocket prepareRawSocket();
-
-        public void setup(Context context);
     }
 
     private Handler.Callback mOuterCallback = new Handler.Callback() {

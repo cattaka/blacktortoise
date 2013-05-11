@@ -65,9 +65,9 @@ public abstract class BtConnectionAdapter implements IDeviceAdapter {
         if (mConnectionThread != null) {
             throw new IllegalStateException("Already running.");
         }
-        mConnectionThread.startThread();
         mConnectionThread = new ConnectionThread<BtPacket>(createRawSocketPrepareTask(),
                 mPacketFactory, mConnectionThreadListener, true);
+        mConnectionThread.startThread();
     }
 
     @Override

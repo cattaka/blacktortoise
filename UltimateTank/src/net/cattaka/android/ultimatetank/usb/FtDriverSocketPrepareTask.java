@@ -4,7 +4,6 @@ package net.cattaka.android.ultimatetank.usb;
 import jp.ksksue.driver.serial.FTDriver;
 import net.cattaka.libgeppa.IRawSocket;
 import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
-import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 
@@ -13,13 +12,10 @@ public class FtDriverSocketPrepareTask implements IRawSocketPrepareTask {
 
     private UsbDevice mUsbDevice;
 
-    public FtDriverSocketPrepareTask(UsbDevice usbDevice) {
+    public FtDriverSocketPrepareTask(UsbManager usbManager, UsbDevice usbDevice) {
         super();
+        mUsbManager = usbManager;
         mUsbDevice = usbDevice;
-    }
-
-    public void setup(Context context) {
-        mUsbManager = (UsbManager)context.getSystemService(Context.USB_SERVICE);
     }
 
     @Override

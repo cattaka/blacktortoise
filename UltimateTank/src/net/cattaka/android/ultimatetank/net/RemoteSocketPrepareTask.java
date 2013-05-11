@@ -6,7 +6,6 @@ import java.net.SocketAddress;
 
 import net.cattaka.libgeppa.IRawSocket;
 import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
-import android.content.Context;
 
 public class RemoteSocketPrepareTask implements IRawSocketPrepareTask {
     private String mHostname;
@@ -17,11 +16,6 @@ public class RemoteSocketPrepareTask implements IRawSocketPrepareTask {
         super();
         mHostname = hostname;
         this.port = port;
-    }
-
-    @Override
-    public void setup(Context context) {
-        // none
     }
 
     @Override

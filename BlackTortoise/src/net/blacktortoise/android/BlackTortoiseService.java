@@ -12,6 +12,8 @@ import net.blacktortoise.android.common.data.DeviceState;
 import net.blacktortoise.android.common.data.OpCode;
 import net.blacktortoise.android.util.AidlUtil;
 import net.blacktortoise.android.util.AidlUtil.CallFunction;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -30,6 +32,8 @@ public class BlackTortoiseService extends Service {
     protected static final String ACTION_USB_PERMISSION = "net.cattaka.android.blacktortoise.action_permission";
 
     protected static final String EXTRA_USB_DEVICE_KEY = "usbDevicekey";
+
+    private static final int NOTIFICATION_CONNECTED_ID = 1;
 
     private static final int EVENT_REGISTER_CONNECTION_LISTENER = 1;
 
@@ -253,6 +257,7 @@ public class BlackTortoiseService extends Service {
                             return true;
                         };
                     });
+            handleConnectedNotification(state == DeviceState.CONNECTED);
         }
     };
 
@@ -312,6 +317,20 @@ public class BlackTortoiseService extends Service {
                 // Impossible
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    private void handleConnectedNotification(boolean connected) {
+        NotificationManager manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        if (connected) {
+            Notification.Builder builder = new Notification.Builder(this);
+            builder.setContentTitle(getText(R.string.notification_title_connected));
+            builder.setSmallIcon(R.drawable.ic_launcher);
+            @SuppressWarnings("deprecation")
+            Notification nortification = builder.getNotification();
+            manager.notify(NOTIFICATION_CONNECTED_ID, nortification);
+        } else {
+            manager.cancel(NOTIFICATION_CONNECTED_ID);
         }
     }
 }

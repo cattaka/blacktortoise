@@ -109,6 +109,13 @@ public class BtServiceAdapter implements IDeviceAdapter {
 
     @Override
     public void stopAdapter() throws InterruptedException {
+        if (mService != null) {
+            try {
+                mService.disconnect();
+            } catch (RemoteException e) {
+                throw new RuntimeException(e);
+            }
+        }
         mContext.unbindService(mServiceConnection);
     }
 

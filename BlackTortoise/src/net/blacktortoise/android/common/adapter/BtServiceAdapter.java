@@ -37,16 +37,18 @@ public class BtServiceAdapter implements IDeviceAdapter {
         public void onServiceConnected(ComponentName componentName, IBinder binder) {
             mService = IBlackTortoiseService.Stub.asInterface(binder);
             try {
-                mService.connect(mDeviceId);
                 mService.registerServiceListener(mServiceListener);
             } catch (RemoteException e) {
                 throw new RuntimeException(e);
             }
+            sHandler.obtainMessage(EVENT_ON_DEVICE_STATE_CHANGED, new Object[] {
+                    me, DeviceState.CONNECTED, DeviceEventCode.UNKNOWN
+            }).sendToTarget();
         }
     };
 
     private IBlackTortoiseServiceListener mServiceListener = new IBlackTortoiseServiceListener.Stub() {
-        public void onDeviceStateChanged(DeviceState state, DeviceEventCode code)
+        public void onDeviceStateChanged(DeviceState state, DeviceEventCode code, String deviceKey)
                 throws RemoteException {
             sHandler.obtainMessage(EVENT_ON_DEVICE_STATE_CHANGED, new Object[] {
                     me, state, code
@@ -88,8 +90,6 @@ public class BtServiceAdapter implements IDeviceAdapter {
 
     private Context mContext;
 
-    private String mDeviceId;
-
     private DeviceState mLastDeviceState = DeviceState.INITIAL;
 
     private IDeviceAdapterListener mListener;
@@ -98,25 +98,23 @@ public class BtServiceAdapter implements IDeviceAdapter {
     public void startAdapter() throws InterruptedException {
         Intent intent = new Intent(mContext, BlackTortoiseService.class);
         mContext.bindService(intent, mServiceConnection, Service.BIND_AUTO_CREATE);
+        sHandler.obtainMessage(EVENT_ON_DEVICE_STATE_CHANGED, new Object[] {
+                me, DeviceState.CONNECTING, DeviceEventCode.UNKNOWN
+        }).sendToTarget();
     }
 
-    public BtServiceAdapter(IDeviceAdapterListener listener, Context context, String deviceId) {
+    public BtServiceAdapter(IDeviceAdapterListener listener, Context context) {
         super();
         mListener = listener;
         mContext = context;
-        mDeviceId = deviceId;
     }
 
     @Override
     public void stopAdapter() throws InterruptedException {
-        if (mService != null) {
-            try {
-                mService.disconnect();
-            } catch (RemoteException e) {
-                throw new RuntimeException(e);
-            }
-        }
         mContext.unbindService(mServiceConnection);
+        sHandler.obtainMessage(EVENT_ON_DEVICE_STATE_CHANGED, new Object[] {
+                me, DeviceState.CLOSED, DeviceEventCode.DISCONNECTED
+        }).sendToTarget();
     }
 
     @Override

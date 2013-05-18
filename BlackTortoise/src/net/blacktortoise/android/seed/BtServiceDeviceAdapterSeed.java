@@ -9,16 +9,14 @@ import net.blacktortoise.android.common.adapter.BtServiceAdapter;
 import android.content.Context;
 
 public class BtServiceDeviceAdapterSeed implements IDeviceAdapterSeed {
-    private String mDeviceId;
 
-    public BtServiceDeviceAdapterSeed(String deviceId) {
+    public BtServiceDeviceAdapterSeed() {
         super();
-        mDeviceId = deviceId;
     }
 
     @Override
     public IDeviceAdapter createDeviceAdapter(Context context, IDeviceAdapterListener listener) {
-        return new BtServiceAdapter(listener, context, mDeviceId);
+        return new BtServiceAdapter(listener, context);
     }
 
     @Override

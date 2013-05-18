@@ -8,11 +8,13 @@ interface IBlackTortoiseService {
 
     int registerServiceListener(IBlackTortoiseServiceListener listener);
 
-    void unregisterServiceServiceListener(int seq);
+    void unregisterServiceListener(int seq);
 
     void connect(in String deviceKey);
 
     void disconnect();
+
+    String getCurrentDeviceKey();
 
     /**
      * @see ConnectionThread#sendPacket(net.cattaka.libgeppa.data.IPacket)

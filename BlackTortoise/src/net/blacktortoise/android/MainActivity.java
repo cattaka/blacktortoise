@@ -10,10 +10,9 @@ import net.blacktortoise.android.common.IDeviceAdapterListener;
 import net.blacktortoise.android.common.IDeviceCommandAdapter;
 import net.blacktortoise.android.common.data.DeviceEventCode;
 import net.blacktortoise.android.common.data.DeviceState;
-import net.blacktortoise.android.fragment.ConnectFragment;
 import net.blacktortoise.android.fragment.BaseFragment.IBaseFragmentAdapter;
+import net.blacktortoise.android.fragment.ConnectFragment;
 import net.blacktortoise.android.seed.IDeviceAdapterSeed;
-import net.blacktortoise.android.R;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -208,6 +207,19 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (getFragmentManager().getBackStackEntryCount() == 0 && mDeviceAdapter != null) {
+            stopConnectionThread();
+            mDeviceAdapterSeed = null;
+            ConnectFragment next = new ConnectFragment();
+            replacePrimaryFragment(next, false);
+            return;
+        } else {
+            super.onBackPressed();
         }
     }
 }

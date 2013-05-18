@@ -27,6 +27,7 @@
             </intent-filter>
         </activity>
         <service android:exported="true" android:name="net.blacktortoise.android.BlackTortoiseService"></service>
+        <activity android:name="ConnectLocalDeviceActivity"></activity>
     </application>
 
 </manifest>

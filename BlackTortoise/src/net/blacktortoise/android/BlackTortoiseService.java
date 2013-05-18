@@ -3,8 +3,9 @@ package net.blacktortoise.android;
 
 import java.util.Map;
 
+import net.blacktortoise.android.common.IDeviceAdapter;
 import net.blacktortoise.android.common.IDeviceAdapterListener;
-import net.blacktortoise.android.common.adapter.BtConnectionAdapter;
+import net.blacktortoise.android.common.adapter.DummyDeviceAdapter;
 import net.blacktortoise.android.common.adapter.LocalDeviceAdapter;
 import net.blacktortoise.android.common.data.BtPacket;
 import net.blacktortoise.android.common.data.DeviceEventCode;
@@ -26,6 +27,7 @@ import android.hardware.usb.UsbManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.Log;
 import android.util.SparseArray;
 
 public class BlackTortoiseService extends Service {
@@ -55,11 +57,20 @@ public class BlackTortoiseService extends Service {
         public void handleMessage(android.os.Message msg) {
             Object objs[] = (Object[])msg.obj;
             BlackTortoiseService target = (BlackTortoiseService)objs[0];
-            BtConnectionAdapter mcThread = target.mConnectionThread;
+            IDeviceAdapter mcThread = target.mDeviceAdapter;
             switch (msg.what) {
                 case EVENT_REGISTER_CONNECTION_LISTENER: {
-                    target.mServiceListeners.append((Integer)objs[1],
-                            (IBlackTortoiseServiceListener)objs[2]);
+                    IBlackTortoiseServiceListener listener = (IBlackTortoiseServiceListener)objs[2];
+                    try {
+                        DeviceState state = (mcThread != null) ? mcThread.getDeviceState() : null;
+                        String deviceKey = pickDeviceKey(mcThread);
+                        listener.onDeviceStateChanged(state, DeviceEventCode.ON_REGISTER, deviceKey);
+
+                        target.mServiceListeners.append((Integer)objs[1], listener);
+                    } catch (RemoteException e) {
+                        // Ignore
+                        Log.w(Constants.TAG, e.getMessage(), e);
+                    }
                     break;
                 }
                 case EVENT_UNREGISTER_CONNECTION_LISTENER: {
@@ -128,7 +139,7 @@ public class BlackTortoiseService extends Service {
 
     private BlackTortoiseService me = this;
 
-    private LocalDeviceAdapter mConnectionThread;
+    private IDeviceAdapter mDeviceAdapter;
 
     private int mNextConnectionListenerSeq = 1;
 
@@ -157,7 +168,7 @@ public class BlackTortoiseService extends Service {
         }
 
         @Override
-        public void unregisterServiceServiceListener(int seq) throws RemoteException {
+        public void unregisterServiceListener(int seq) throws RemoteException {
             sHandler.obtainMessage(EVENT_UNREGISTER_CONNECTION_LISTENER, new Object[] {
                     me, seq
             }).sendToTarget();
@@ -176,8 +187,13 @@ public class BlackTortoiseService extends Service {
         };
 
         @Override
+        public String getCurrentDeviceKey() throws RemoteException {
+            return me.getCurrentDeviceKey();
+        }
+
+        @Override
         public boolean requestCameraImage() throws RemoteException {
-            if (mConnectionThread != null) {
+            if (mDeviceAdapter != null) {
                 sHandler.obtainMessage(EVENT_REQUEST_CAMERA_IMAGE, new Object[] {
                     me
                 }).sendToTarget();
@@ -189,7 +205,7 @@ public class BlackTortoiseService extends Service {
 
         @Override
         public boolean sendPacket(BtPacket packet) throws RemoteException {
-            if (mConnectionThread != null) {
+            if (mDeviceAdapter != null) {
                 sHandler.obtainMessage(EVENT_SEND_PACKET, new Object[] {
                         me, packet
                 }).sendToTarget();
@@ -202,7 +218,7 @@ public class BlackTortoiseService extends Service {
         @Override
         public boolean sendMove(float leftMotor1, float leftMotor2, float rightMotor1,
                 float rightMotor2) throws RemoteException {
-            if (mConnectionThread != null) {
+            if (mDeviceAdapter != null) {
                 sHandler.obtainMessage(EVENT_SEND_MOVE, new Object[] {
                         me, new float[] {
                                 leftMotor1, leftMotor2, rightMotor1, rightMotor2
@@ -216,7 +232,7 @@ public class BlackTortoiseService extends Service {
 
         @Override
         public boolean sendHead(float yaw, float pitch) throws RemoteException {
-            if (mConnectionThread != null) {
+            if (mDeviceAdapter != null) {
                 sHandler.obtainMessage(EVENT_SEND_HEAD, new Object[] {
                         me, new float[] {
                                 yaw, pitch
@@ -253,11 +269,12 @@ public class BlackTortoiseService extends Service {
                     new CallFunction<IBlackTortoiseServiceListener>() {
                         public boolean run(IBlackTortoiseServiceListener item)
                                 throws RemoteException {
-                            item.onDeviceStateChanged(state, code);
+
+                            item.onDeviceStateChanged(state, code, getCurrentDeviceKey());
                             return true;
                         };
                     });
-            handleConnectedNotification(state == DeviceState.CONNECTED);
+            handleConnectedNotification(state == DeviceState.CONNECTED, getCurrentDeviceKey());
         }
     };
 
@@ -271,6 +288,14 @@ public class BlackTortoiseService extends Service {
     }
 
     @Override
+    public boolean onUnbind(Intent intent) {
+        if (mDeviceAdapter == null) {
+            stopSelf();
+        }
+        return false;
+    }
+
+    @Override
     public void onCreate() {
         super.onCreate();
         IntentFilter filter = new IntentFilter();
@@ -281,38 +306,50 @@ public class BlackTortoiseService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        disconnect();
         unregisterReceiver(mUsbReceiver);
     }
 
     private void connect(String deviceKey) {
         disconnect();
 
-        UsbManager usbManager = (UsbManager)getSystemService(USB_SERVICE);
-        Map<String, UsbDevice> devices = usbManager.getDeviceList();
-        UsbDevice usbDevice = devices.get(deviceKey);
-        if (usbManager.hasPermission(usbDevice)) {
-            // If service already has permission, it start thread.
-            mConnectionThread = new LocalDeviceAdapter(mDeviceAdapterListener, true, usbManager,
-                    usbDevice);
+        if (Constants.DUMMY_DEVICE_ID.equals(deviceKey)) {
+            mDeviceAdapter = new DummyDeviceAdapter(mDeviceAdapterListener, sHandler);
             try {
-                mConnectionThread.startAdapter();
+                mDeviceAdapter.startAdapter();
             } catch (InterruptedException e) {
                 // Impossible
                 throw new RuntimeException(e);
             }
         } else {
-            // Request
-            Intent intent = new Intent(ACTION_USB_PERMISSION);
-            intent.putExtra(EXTRA_USB_DEVICE_KEY, deviceKey);
-            PendingIntent pIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-            usbManager.requestPermission(usbDevice, pIntent);
+            UsbManager usbManager = (UsbManager)getSystemService(USB_SERVICE);
+            Map<String, UsbDevice> devices = usbManager.getDeviceList();
+            UsbDevice usbDevice = devices.get(deviceKey);
+            if (usbManager.hasPermission(usbDevice)) {
+                // If service already has permission, it start thread.
+                mDeviceAdapter = new LocalDeviceAdapter(mDeviceAdapterListener, true, usbManager,
+                        usbDevice);
+                try {
+                    mDeviceAdapter.startAdapter();
+                } catch (InterruptedException e) {
+                    // Impossible
+                    throw new RuntimeException(e);
+                }
+            } else {
+                // Request
+                Intent intent = new Intent(ACTION_USB_PERMISSION);
+                intent.putExtra(EXTRA_USB_DEVICE_KEY, deviceKey);
+                PendingIntent pIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+                usbManager.requestPermission(usbDevice, pIntent);
+            }
         }
     }
 
     private void disconnect() {
-        if (mConnectionThread != null) {
+        if (mDeviceAdapter != null) {
             try {
-                mConnectionThread.stopAdapter();
+                mDeviceAdapter.stopAdapter();
+                mDeviceAdapter = null;
             } catch (InterruptedException e) {
                 // Impossible
                 throw new RuntimeException(e);
@@ -320,17 +357,32 @@ public class BlackTortoiseService extends Service {
         }
     }
 
-    private void handleConnectedNotification(boolean connected) {
+    private void handleConnectedNotification(boolean connected, String deviceKey) {
         NotificationManager manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         if (connected) {
             Notification.Builder builder = new Notification.Builder(this);
             builder.setContentTitle(getText(R.string.notification_title_connected));
+            builder.setContentText(deviceKey);
             builder.setSmallIcon(R.drawable.ic_launcher);
             @SuppressWarnings("deprecation")
             Notification nortification = builder.getNotification();
             manager.notify(NOTIFICATION_CONNECTED_ID, nortification);
         } else {
             manager.cancel(NOTIFICATION_CONNECTED_ID);
+        }
+    }
+
+    private String getCurrentDeviceKey() {
+        return pickDeviceKey(mDeviceAdapter);
+    }
+
+    private static String pickDeviceKey(IDeviceAdapter adapter) {
+        if (adapter instanceof LocalDeviceAdapter) {
+            return ((LocalDeviceAdapter)adapter).getUsbDevice().getDeviceName();
+        } else if (adapter instanceof DummyDeviceAdapter) {
+            return Constants.DUMMY_DEVICE_ID;
+        } else {
+            return null;
         }
     }
 }

@@ -23,4 +23,9 @@ public class LocalDeviceAdapter extends BtConnectionAdapter {
     protected IRawSocketPrepareTask createRawSocketPrepareTask() {
         return new FtDriverSocketPrepareTask(mUsbManager, mUsbDevice);
     }
+
+    public UsbDevice getUsbDevice() {
+        return mUsbDevice;
+    }
+
 }

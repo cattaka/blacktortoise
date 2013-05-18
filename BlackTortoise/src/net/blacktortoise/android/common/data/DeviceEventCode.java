@@ -5,7 +5,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public enum DeviceEventCode implements Parcelable {
-    UNKNOWN, DISCONNECTED, NO_DEVICE;
+    UNKNOWN, DISCONNECTED, NO_DEVICE, ON_REGISTER;
 
     @Override
     public int describeContents() {

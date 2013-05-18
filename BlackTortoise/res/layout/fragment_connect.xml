@@ -14,24 +14,26 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
-	    <TextView
-	        android:layout_width="0dp"
-	        android:layout_height="wrap_content"
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-	        android:text="@string/label_usb_devices"
-	        android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:text="@string/label_usb_devices"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
         <Button
-            android:id="@+id/useDummyButton"
+            android:id="@+id/goToSelectDeviceButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/btn_dummy" />
-	 </LinearLayout>
+            android:text="@string/btn_select" />
 
-    <ListView
-        android:id="@+id/usbDeviceList"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        <Button
+            android:id="@+id/startButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_start" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -43,7 +45,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/label_socket_addresses"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <ImageButton
             android:id="@+id/addSocketAddressButton"

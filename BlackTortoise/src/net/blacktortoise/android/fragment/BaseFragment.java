@@ -40,7 +40,10 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
 
         public boolean unregisterDeviceAdapterListener(IDeviceAdapterListener listener);
 
+        public void runOnUiThread(Runnable action);
+
         public void setKeepScreen(boolean flag);
+
     }
 
     public IBaseFragmentAdapter getBaseFragmentAdapter() {
@@ -112,6 +115,11 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
     /** Do only delegation */
     public boolean unregisterDeviceAdapterListener(IDeviceAdapterListener listener) {
         return getBaseFragmentAdapter().unregisterDeviceAdapterListener(listener);
+    }
+
+    /** Do only delegation */
+    public void runOnUiThread(Runnable action) {
+        getBaseFragmentAdapter().runOnUiThread(action);
     }
 
     public IDeviceCommandAdapter getCommandAdapter() {

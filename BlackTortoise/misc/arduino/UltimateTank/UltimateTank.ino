@@ -1,6 +1,8 @@
+#include <Arduino.h>
 #include <SoftwareSerial.h>
-#include <SoftwareServo.h>
+#include <Servo.h>
 #include "Geppa.h"
+
 
 // =============================
 // Debug setting
@@ -48,24 +50,22 @@ struct MotorPin {
 struct MotorPin motorPins[MOTOR_PIN_NUM];
 
 struct MyServo {
-  SoftwareServo servo;
-  int pulseMin;
-  int pulseMax;
+  Servo servo;
+  long pulseMin;
+  long pulseMax;
   long currentValue;
   long value;
   long stepWidth;
 };
 struct MyServo myServos[SERVO_NUM];
 
-void initMyServo(int idx, int pin, int pulseMin, int pulseMax, long initValue, long stepWidth) {
+void initMyServo(int idx, int pin, long pulseMin, long pulseMax, long initValue, long stepWidth) {
   myServos[idx].pulseMin = pulseMin;
   myServos[idx].pulseMax = pulseMax;
   myServos[idx].currentValue = initValue;
   myServos[idx].value = initValue;
   myServos[idx].stepWidth = stepWidth;
-  myServos[idx].servo.attach(pin);
-  myServos[idx].servo.setMinimumPulse(pulseMin);
-  myServos[idx].servo.setMaximumPulse(pulseMax);
+  myServos[idx].servo.attach(pin, pulseMin, pulseMax);
 }
 void initMotorPin(int idx, int pin) {
   pinMode(pin, OUTPUT);
@@ -140,10 +140,11 @@ void loop()
       else {
         myServos[i].currentValue = targetValue;
       }
-      int val = map(myServos[i].currentValue, 0, 0xFF, 0, 180);
-      myServos[i].servo.write(val);
+      //int val = map(myServos[i].currentValue, 0, 0xFF, 0, 180);
+      //myServos[i].servo.write(val);
+      int val = map(myServos[i].currentValue, 0, 0xFF, myServos[i].pulseMin, myServos[i].pulseMax);
+      myServos[i].servo.writeMicroseconds(val);
     }
-    SoftwareServo::refresh();
   }
   {  // Controlling motors
     for (int i=0;i<MOTOR_PIN_NUM;i++) {

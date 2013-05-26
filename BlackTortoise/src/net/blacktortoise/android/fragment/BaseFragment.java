@@ -3,11 +3,11 @@ package net.blacktortoise.android.fragment;
 
 import net.blacktortoise.android.camera.ICameraManager;
 import net.blacktortoise.android.camera.ICameraManagerAdapter;
-import net.blacktortoise.android.common.IDeviceAdapterListener;
-import net.blacktortoise.android.common.IDeviceCommandAdapter;
-import net.blacktortoise.android.common.data.DeviceEventCode;
-import net.blacktortoise.android.common.data.DeviceState;
 import net.blacktortoise.android.seed.IDeviceAdapterSeed;
+import net.blacktortoise.androidlib.IDeviceAdapterListener;
+import net.blacktortoise.androidlib.IDeviceCommandAdapter;
+import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceState;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;

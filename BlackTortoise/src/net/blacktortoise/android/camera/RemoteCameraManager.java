@@ -1,11 +1,11 @@
 
 package net.blacktortoise.android.camera;
 
-import net.blacktortoise.android.common.IDeviceAdapterListener;
-import net.blacktortoise.android.common.IDeviceCommandAdapter;
-import net.blacktortoise.android.common.data.DeviceEventCode;
-import net.blacktortoise.android.common.data.DeviceState;
 import net.blacktortoise.android.fragment.BaseFragment.IBaseFragmentAdapter;
+import net.blacktortoise.androidlib.IDeviceAdapterListener;
+import net.blacktortoise.androidlib.IDeviceCommandAdapter;
+import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceState;
 import android.graphics.Bitmap;
 
 public class RemoteCameraManager implements ICameraManager, IDeviceAdapterListener {

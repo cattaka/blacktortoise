@@ -28,6 +28,12 @@ public interface IDeviceCommandAdapter {
     public boolean sendHead(float yaw, float pitch);
 
     /**
+     * @param data date for echo.
+     * @return If putting to queue is succeed it returns true, otherwise false.
+     */
+    public boolean sendEcho(byte[] data);
+
+    /**
      * @return If putting to queue is succeed it returns true, otherwise false.
      */
     public boolean sendRequestCameraImage();

@@ -53,6 +53,8 @@ public class BlackTortoiseService extends Service {
 
     private static final int EVENT_SEND_HEAD = 8;
 
+    private static final int EVENT_SEND_ECHO = 9;
+
     private static Handler sHandler = new Handler() {
         public void handleMessage(android.os.Message msg) {
             Object objs[] = (Object[])msg.obj;
@@ -107,26 +109,9 @@ public class BlackTortoiseService extends Service {
                                 mcThread.sendHead(vs[0], vs[1]);
                                 break;
                             }
-                        }
-                    }
-                    if (mcThread != null) {
-                        switch (msg.what) {
-                            case EVENT_REQUEST_CAMERA_IMAGE: {
-                                mcThread.sendRequestCameraImage();
-                                break;
-                            }
-                            case EVENT_SEND_PACKET: {
-                                mcThread.sendPacket((BtPacket)objs[1]);
-                                break;
-                            }
-                            case EVENT_SEND_MOVE: {
-                                float[] vs = (float[])objs[1];
-                                mcThread.sendMove(vs[0], vs[1], vs[2], vs[3]);
-                                break;
-                            }
-                            case EVENT_SEND_HEAD: {
-                                float[] vs = (float[])objs[1];
-                                mcThread.sendHead(vs[0], vs[1]);
+                            case EVENT_SEND_ECHO: {
+                                byte[] data = (byte[])objs[1];
+                                mcThread.sendEcho(data);
                                 break;
                             }
                         }
@@ -243,6 +228,17 @@ public class BlackTortoiseService extends Service {
                 return false;
             }
         }
+
+        public boolean sendEcho(byte[] data) throws RemoteException {
+            if (mDeviceAdapter != null) {
+                sHandler.obtainMessage(EVENT_SEND_ECHO, new Object[] {
+                        me, data
+                }).sendToTarget();
+                return true;
+            } else {
+                return false;
+            }
+        };
     };
 
     private IDeviceAdapterListener mDeviceAdapterListener = new IDeviceAdapterListener() {

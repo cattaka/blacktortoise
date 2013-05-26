@@ -41,7 +41,7 @@ public abstract class BtConnectionAdapter implements IDeviceAdapter {
                     mListener.onReceiveCameraImage(cameraIdx, bitmap);
                 }
             } else {
-                // Currently, There are no other events.
+                mListener.onReceiveEcho(packet.getData());
             }
         }
 
@@ -95,6 +95,12 @@ public abstract class BtConnectionAdapter implements IDeviceAdapter {
         mBuffer[0] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * yaw)));
         mBuffer[1] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * pitch)));
         BtPacket packet = new BtPacket(OpCode.HEAD, 2, mBuffer);
+        return sendPacket(packet);
+    }
+
+    @Override
+    public boolean sendEcho(byte[] data) {
+        BtPacket packet = new BtPacket(OpCode.ECHO, data.length, data);
         return sendPacket(packet);
     }
 

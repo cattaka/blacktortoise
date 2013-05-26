@@ -26,6 +26,8 @@ public class BtServiceAdapter implements IDeviceAdapter {
 
     private static final int EVENT_ON_RECEIVE_CAMER_IMAGE = 2;
 
+    private static final int EVENT_ON_RECEIVE_ECHO = 3;
+
     private ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
@@ -65,6 +67,10 @@ public class BtServiceAdapter implements IDeviceAdapter {
                             me, cameraIdx, bitmap
                     }).sendToTarget();
                 }
+            } else if (packet.getOpCode() == OpCode.ECHO) {
+                sHandler.obtainMessage(EVENT_ON_RECEIVE_ECHO, new Object[] {
+                        me, packet.getData()
+                }).sendToTarget();
             } else {
                 // Currently, There are no other events.
             }
@@ -77,6 +83,8 @@ public class BtServiceAdapter implements IDeviceAdapter {
             BtServiceAdapter target = (BtServiceAdapter)objs[0];
             if (msg.what == EVENT_ON_RECEIVE_CAMER_IMAGE) {
                 target.mListener.onReceiveCameraImage((Integer)objs[1], (Bitmap)objs[2]);
+            } else if (msg.what == EVENT_ON_RECEIVE_ECHO) {
+                target.mListener.onReceiveEcho((byte[])objs[1]);
             } else if (msg.what == EVENT_ON_DEVICE_STATE_CHANGED) {
                 target.mListener.onDeviceStateChanged((DeviceState)objs[1],
                         (DeviceEventCode)objs[2]);
@@ -134,6 +142,18 @@ public class BtServiceAdapter implements IDeviceAdapter {
         if (mService != null) {
             try {
                 return mService.sendMove(leftMotor1, leftMotor2, rightMotor1, rightMotor2);
+            } catch (RemoteException e) {
+                // ignore
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean sendEcho(byte[] data) {
+        if (mService != null) {
+            try {
+                return mService.sendEcho(data);
             } catch (RemoteException e) {
                 // ignore
             }

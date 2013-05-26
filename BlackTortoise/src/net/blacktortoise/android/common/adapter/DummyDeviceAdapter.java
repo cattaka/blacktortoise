@@ -67,4 +67,9 @@ public class DummyDeviceAdapter implements IDeviceAdapter {
     public boolean sendRequestCameraImage() {
         return true;
     }
+
+    @Override
+    public boolean sendEcho(byte[] data) {
+        return true;
+    }
 }

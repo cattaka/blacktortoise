@@ -37,6 +37,13 @@ interface IBlackTortoiseService {
      */
     boolean sendHead(in float yaw, in float pitch);
 
+
+    /**
+     * @param data date for echo.
+     * @return If putting to queue is succeed it returns true, otherwise false.
+     */
+    boolean sendEcho(in byte[] data);
+
     /**
      * @return If putting to queue is succeed it returns true, otherwise false.
      */

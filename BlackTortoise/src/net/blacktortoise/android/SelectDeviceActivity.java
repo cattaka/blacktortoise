@@ -32,8 +32,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-public class SelectDeviceActivity extends Activity implements OnClickListener,
-        OnItemClickListener {
+public class SelectDeviceActivity extends Activity implements OnClickListener, OnItemClickListener {
     protected static final String EXTRA_USB_DEVICE_KEY = "usbDevicekey";
 
     private static class ListItem {
@@ -119,6 +118,9 @@ public class SelectDeviceActivity extends Activity implements OnClickListener,
                         }
                     }
                     updateSelectedUsbDevice(deviceKey);
+                    if (state == DeviceState.CONNECTED && code != DeviceEventCode.ON_REGISTER) {
+                        finish();
+                    }
                 }
             });
         }
@@ -215,8 +217,8 @@ public class SelectDeviceActivity extends Activity implements OnClickListener,
             }
         }
 
-        ArrayAdapter<ListItem> adapter = new ArrayAdapter<SelectDeviceActivity.ListItem>(
-                this, android.R.layout.simple_list_item_single_choice, items);
+        ArrayAdapter<ListItem> adapter = new ArrayAdapter<SelectDeviceActivity.ListItem>(this,
+                android.R.layout.simple_list_item_single_choice, items);
         mUsbDeviceList.setAdapter(adapter);
     }
 
@@ -259,6 +261,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener,
                 mService.connect(itemKey);
             } else {
                 mService.disconnect();
+                finish();
             }
         } catch (RemoteException e) {
             // Impossible

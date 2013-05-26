@@ -26,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:exported="true" android:name="net.blacktortoise.android.BlackTortoiseService"></service>
+        <service android:exported="true" android:process=":remote" android:name="net.blacktortoise.android.BlackTortoiseService"></service>
         <activity android:name="SelectDeviceActivity"></activity>
     </application>
 

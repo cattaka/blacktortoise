@@ -6,12 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-import net.blacktortoise.android.common.data.BtPacket;
-import net.blacktortoise.android.common.data.DeviceEventCode;
-import net.blacktortoise.android.common.data.DeviceState;
 import net.blacktortoise.android.db.BtDbHelper;
 import net.blacktortoise.android.dialog.EditAddrresDialog;
-import net.blacktortoise.android.usb.UsbClass;
+import net.blacktortoise.androidlib.IBlackTortoiseService;
+import net.blacktortoise.androidlib.IBlackTortoiseServiceListener;
+import net.blacktortoise.androidlib.data.BtPacket;
+import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceState;
+import net.blacktortoise.androidlib.usb.UsbClass;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;

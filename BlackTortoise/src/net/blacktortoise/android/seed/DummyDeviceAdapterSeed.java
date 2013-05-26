@@ -3,9 +3,9 @@ package net.blacktortoise.android.seed;
 
 import net.blacktortoise.android.camera.DeviceCameraManager;
 import net.blacktortoise.android.camera.ICameraManager;
-import net.blacktortoise.android.common.IDeviceAdapter;
-import net.blacktortoise.android.common.IDeviceAdapterListener;
-import net.blacktortoise.android.common.adapter.DummyDeviceAdapter;
+import net.blacktortoise.androidlib.IDeviceAdapter;
+import net.blacktortoise.androidlib.IDeviceAdapterListener;
+import net.blacktortoise.androidlib.adapter.DummyDeviceAdapter;
 import android.content.Context;
 import android.os.Handler;
 

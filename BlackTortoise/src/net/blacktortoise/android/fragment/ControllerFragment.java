@@ -3,14 +3,14 @@ package net.blacktortoise.android.fragment;
 
 import java.util.Locale;
 
+import net.blacktortoise.android.R;
 import net.blacktortoise.android.camera.ICameraManager;
 import net.blacktortoise.android.camera.ICameraManagerAdapter;
-import net.blacktortoise.android.common.IDeviceCommandAdapter;
-import net.blacktortoise.android.common.data.BtPacket;
-import net.blacktortoise.android.common.data.OpCode;
 import net.blacktortoise.android.util.CommandAdapterUtil;
 import net.blacktortoise.android.util.NormalizedOnTouchListener;
-import net.blacktortoise.android.R;
+import net.blacktortoise.androidlib.IDeviceCommandAdapter;
+import net.blacktortoise.androidlib.data.BtPacket;
+import net.blacktortoise.androidlib.data.OpCode;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.SystemClock;

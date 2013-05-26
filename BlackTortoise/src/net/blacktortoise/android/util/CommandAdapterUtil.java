@@ -1,7 +1,7 @@
 
 package net.blacktortoise.android.util;
 
-import net.blacktortoise.android.common.IDeviceCommandAdapter;
+import net.blacktortoise.androidlib.IDeviceCommandAdapter;
 
 public class CommandAdapterUtil {
     /**

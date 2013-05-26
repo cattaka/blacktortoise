@@ -3,16 +3,18 @@ package net.blacktortoise.android;
 
 import java.util.Map;
 
-import net.blacktortoise.android.common.IDeviceAdapter;
-import net.blacktortoise.android.common.IDeviceAdapterListener;
-import net.blacktortoise.android.common.adapter.DummyDeviceAdapter;
-import net.blacktortoise.android.common.adapter.LocalDeviceAdapter;
-import net.blacktortoise.android.common.data.BtPacket;
-import net.blacktortoise.android.common.data.DeviceEventCode;
-import net.blacktortoise.android.common.data.DeviceState;
-import net.blacktortoise.android.common.data.OpCode;
 import net.blacktortoise.android.util.AidlUtil;
 import net.blacktortoise.android.util.AidlUtil.CallFunction;
+import net.blacktortoise.androidlib.IBlackTortoiseService;
+import net.blacktortoise.androidlib.IBlackTortoiseServiceListener;
+import net.blacktortoise.androidlib.IDeviceAdapter;
+import net.blacktortoise.androidlib.IDeviceAdapterListener;
+import net.blacktortoise.androidlib.adapter.DummyDeviceAdapter;
+import net.blacktortoise.androidlib.adapter.LocalDeviceAdapter;
+import net.blacktortoise.androidlib.data.BtPacket;
+import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceState;
+import net.blacktortoise.androidlib.data.OpCode;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;

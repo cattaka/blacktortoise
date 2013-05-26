@@ -32,7 +32,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-public class ConnectLocalDeviceActivity extends Activity implements OnClickListener,
+public class SelectDeviceActivity extends Activity implements OnClickListener,
         OnItemClickListener {
     protected static final String EXTRA_USB_DEVICE_KEY = "usbDevicekey";
 
@@ -87,7 +87,7 @@ public class ConnectLocalDeviceActivity extends Activity implements OnClickListe
         }
     };
 
-    private ConnectLocalDeviceActivity me = this;
+    private SelectDeviceActivity me = this;
 
     private int mServiceListenerSeq = -1;
 
@@ -197,7 +197,7 @@ public class ConnectLocalDeviceActivity extends Activity implements OnClickListe
     private void refleshUsbDeviceList() {
         UsbManager usbman = (UsbManager)getSystemService(Context.USB_SERVICE);
 
-        List<ListItem> items = new ArrayList<ConnectLocalDeviceActivity.ListItem>();
+        List<ListItem> items = new ArrayList<SelectDeviceActivity.ListItem>();
         { // Add special item
             items.add(new ListItem(getString(R.string.item_disconnect), null));
         }
@@ -215,14 +215,14 @@ public class ConnectLocalDeviceActivity extends Activity implements OnClickListe
             }
         }
 
-        ArrayAdapter<ListItem> adapter = new ArrayAdapter<ConnectLocalDeviceActivity.ListItem>(
+        ArrayAdapter<ListItem> adapter = new ArrayAdapter<SelectDeviceActivity.ListItem>(
                 this, android.R.layout.simple_list_item_single_choice, items);
         mUsbDeviceList.setAdapter(adapter);
     }
 
     private void updateSelectedUsbDevice(String deviceId) {
         @SuppressWarnings("unchecked")
-        ArrayAdapter<ListItem> adapter = (ArrayAdapter<ConnectLocalDeviceActivity.ListItem>)mUsbDeviceList
+        ArrayAdapter<ListItem> adapter = (ArrayAdapter<SelectDeviceActivity.ListItem>)mUsbDeviceList
                 .getAdapter();
         for (int i = 0; i < adapter.getCount(); i++) {
             ListItem item = adapter.getItem(i);

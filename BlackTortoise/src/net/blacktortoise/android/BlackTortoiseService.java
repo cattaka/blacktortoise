@@ -356,7 +356,11 @@ public class BlackTortoiseService extends Service {
     private void handleConnectedNotification(boolean connected, String deviceKey) {
         NotificationManager manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         if (connected) {
+            Intent intent = new Intent(this, SelectDeviceActivity.class);
+            PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
             Notification.Builder builder = new Notification.Builder(this);
+            builder.setContentIntent(pIntent);
             builder.setContentTitle(getText(R.string.notification_title_connected));
             builder.setContentText(deviceKey);
             builder.setSmallIcon(R.drawable.ic_launcher);

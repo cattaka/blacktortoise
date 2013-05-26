@@ -4,7 +4,7 @@ package net.blacktortoise.android.fragment;
 import java.util.List;
 
 import net.blacktortoise.android.BlackTortoiseService;
-import net.blacktortoise.android.ConnectLocalDeviceActivity;
+import net.blacktortoise.android.SelectDeviceActivity;
 import net.blacktortoise.android.IBlackTortoiseService;
 import net.blacktortoise.android.R;
 import net.blacktortoise.android.common.data.DeviceEventCode;
@@ -118,7 +118,7 @@ public class ConnectFragment extends BaseFragment implements OnClickListener, On
         } else if (v.getId() == R.id.startButton) {
             connectToService();
         } else if (v.getId() == R.id.goToSelectDeviceButton) {
-            Intent intent = new Intent(getContext(), ConnectLocalDeviceActivity.class);
+            Intent intent = new Intent(getContext(), SelectDeviceActivity.class);
             startActivity(intent);
         }
     }

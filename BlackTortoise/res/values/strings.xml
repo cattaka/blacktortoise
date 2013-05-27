@@ -11,9 +11,9 @@
     <string name="title_input_socket_address">Input socket address</string>
     <string name="title_edit_socket_address">Edit socket address</string>
 
-    <string name="notification_title_connected">USB Device is connected.</string>
+    <string name="notification_title_connected">Device connected.</string>
 
-    <string name="label_usb_devices">USB devices</string>
+    <string name="label_select_device">Select devices</string>
     <string name="label_socket_addresses">Socket addresses</string>
     <string name="label_connected_controller">Connected controller</string>
     <string name="label_host_name">Host name</string>

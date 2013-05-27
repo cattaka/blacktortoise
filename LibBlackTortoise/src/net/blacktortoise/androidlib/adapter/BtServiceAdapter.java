@@ -8,6 +8,7 @@ import net.blacktortoise.androidlib.IDeviceAdapter;
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
 import net.blacktortoise.androidlib.data.BtPacket;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceState;
 import net.blacktortoise.androidlib.data.OpCode;
 import android.app.Service;
@@ -43,17 +44,19 @@ public class BtServiceAdapter implements IDeviceAdapter {
             } catch (RemoteException e) {
                 throw new RuntimeException(e);
             }
+            DeviceInfo deviceInfo = getDeviceInfo();
             sHandler.obtainMessage(EVENT_ON_DEVICE_STATE_CHANGED, new Object[] {
-                    me, DeviceState.CONNECTED, DeviceEventCode.UNKNOWN
+                    me, DeviceState.CONNECTED, DeviceEventCode.UNKNOWN, deviceInfo
             }).sendToTarget();
         }
     };
 
     private IBlackTortoiseServiceListener mServiceListener = new IBlackTortoiseServiceListener.Stub() {
-        public void onDeviceStateChanged(DeviceState state, DeviceEventCode code, String deviceKey)
-                throws RemoteException {
+        public void onDeviceStateChanged(DeviceState state, DeviceEventCode code,
+                DeviceInfo deviceInfo) throws RemoteException {
+            DeviceInfo deviceInfo2 = getDeviceInfo();
             sHandler.obtainMessage(EVENT_ON_DEVICE_STATE_CHANGED, new Object[] {
-                    me, state, code
+                    me, state, code, deviceInfo2
             }).sendToTarget();
         }
 
@@ -86,8 +89,9 @@ public class BtServiceAdapter implements IDeviceAdapter {
             } else if (msg.what == EVENT_ON_RECEIVE_ECHO) {
                 target.mListener.onReceiveEcho((byte[])objs[1]);
             } else if (msg.what == EVENT_ON_DEVICE_STATE_CHANGED) {
+                DeviceInfo deviceInfo = target.getDeviceInfo();
                 target.mListener.onDeviceStateChanged((DeviceState)objs[1],
-                        (DeviceEventCode)objs[2]);
+                        (DeviceEventCode)objs[2], deviceInfo);
             }
         };
     };
@@ -185,4 +189,8 @@ public class BtServiceAdapter implements IDeviceAdapter {
         return mLastDeviceState;
     }
 
+    @Override
+    public DeviceInfo getDeviceInfo() {
+        return DeviceInfo.createService();
+    }
 }

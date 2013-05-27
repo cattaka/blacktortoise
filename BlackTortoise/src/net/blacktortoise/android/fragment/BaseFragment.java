@@ -7,6 +7,7 @@ import net.blacktortoise.android.seed.IDeviceAdapterSeed;
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
 import net.blacktortoise.androidlib.IDeviceCommandAdapter;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceState;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
@@ -68,7 +69,7 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
 
     /** Please override if you need. */
     @Override
-    public void onDeviceStateChanged(DeviceState state, DeviceEventCode code) {
+    public void onDeviceStateChanged(DeviceState state, DeviceEventCode code, DeviceInfo deviceInfo) {
         // none
     }
 

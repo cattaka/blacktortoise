@@ -8,10 +8,13 @@ import java.util.Map.Entry;
 
 import net.blacktortoise.android.db.BtDbHelper;
 import net.blacktortoise.android.dialog.EditAddrresDialog;
+import net.blacktortoise.android.dialog.EditAddrresDialog.IEditAddrresDialogListener;
+import net.blacktortoise.android.entity.MySocketAddress;
 import net.blacktortoise.androidlib.IBlackTortoiseService;
 import net.blacktortoise.androidlib.IBlackTortoiseServiceListener;
 import net.blacktortoise.androidlib.data.BtPacket;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceState;
 import net.blacktortoise.androidlib.usb.UsbClass;
 import android.app.Activity;
@@ -31,21 +34,23 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-public class SelectDeviceActivity extends Activity implements OnClickListener, OnItemClickListener {
+public class SelectDeviceActivity extends Activity implements OnClickListener, OnItemClickListener,
+        OnItemLongClickListener, IEditAddrresDialogListener {
     protected static final String EXTRA_USB_DEVICE_KEY = "usbDevicekey";
 
     private static class ListItem {
         String label;
 
-        String key;
+        DeviceInfo deviceInfo;
 
-        public ListItem(String label, String key) {
+        public ListItem(String label, DeviceInfo deviceInfo) {
             super();
             this.label = label;
-            this.key = key;
+            this.deviceInfo = deviceInfo;
         }
 
         @Override
@@ -78,8 +83,8 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
             if (mServiceListenerSeq < 0) {
                 try {
                     mServiceListenerSeq = mService.registerServiceListener(mServiceListener);
-                    String deviceKey = mService.getCurrentDeviceKey();
-                    updateSelectedUsbDevice(deviceKey);
+                    DeviceInfo deviceInfo = mService.getCurrentDeviceInfo();
+                    updateSelectedUsbDevice(deviceInfo);
                 } catch (RemoteException e) {
                     // Nothing to do
                     throw new RuntimeException(e);
@@ -89,6 +94,12 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
     };
 
     private SelectDeviceActivity me = this;
+
+    private BtDbHelper mDbHelper;
+
+    private EditAddrresDialog mEditAddrresDialog;
+
+    private ListView mSocketAddressList;
 
     private int mServiceListenerSeq = -1;
 
@@ -101,7 +112,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
         }
 
         public void onDeviceStateChanged(final DeviceState state, final DeviceEventCode code,
-                final String deviceKey) throws RemoteException {
+                final DeviceInfo deviceInfo) throws RemoteException {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -119,7 +130,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
                             mProgressDialog = null;
                         }
                     }
-                    updateSelectedUsbDevice(deviceKey);
+                    updateSelectedUsbDevice(deviceInfo);
                     if (state == DeviceState.CONNECTED && code != DeviceEventCode.ON_REGISTER) {
                         finish();
                     }
@@ -130,10 +141,6 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
 
     private IBlackTortoiseService mService;
 
-    private BtDbHelper mDbHelper;
-
-    private EditAddrresDialog mEditAddrresDialog;
-
     private ListView mUsbDeviceList;
 
     @Override
@@ -143,11 +150,18 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
 
         // Pickup view
         mUsbDeviceList = (ListView)findViewById(R.id.usbDeviceList);
+        mSocketAddressList = (ListView)findViewById(R.id.socketAddressList);
 
         // Binds event listener
         mUsbDeviceList.setOnItemClickListener(this);
+        findViewById(R.id.addSocketAddressButton).setOnClickListener(this);
+        mSocketAddressList.setOnItemClickListener(this);
+        mSocketAddressList.setOnItemLongClickListener(this);
 
         mUsbDeviceList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        mSocketAddressList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
+        mEditAddrresDialog = EditAddrresDialog.createEditAddrresDialog(this, this);
     }
 
     @Override
@@ -179,6 +193,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
         mDbHelper = new BtDbHelper(this);
 
         refleshUsbDeviceList();
+        refleshSocketAddressList();
 
         { // Registers receiver for USB attach
             IntentFilter filter = new IntentFilter();
@@ -206,7 +221,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
             items.add(new ListItem(getString(R.string.item_disconnect), null));
         }
         { // Add an item of dummy
-            items.add(new ListItem(getString(R.string.item_dummy), Constants.DUMMY_DEVICE_ID));
+            items.add(new ListItem(getString(R.string.item_dummy), DeviceInfo.createDummy()));
         }
         { // Creates list items
             HashMap<String, UsbDevice> deviceMap = usbman.getDeviceList();
@@ -215,7 +230,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
                 String name = UsbClass.parce(d.getDeviceClass()).name();
                 String label = String.format("%s(%04X:%04X)", name, d.getVendorId(),
                         d.getProductId());
-                items.add(new ListItem(label, entry.getKey()));
+                items.add(new ListItem(label, DeviceInfo.createUsb(entry.getKey())));
             }
         }
 
@@ -224,17 +239,26 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
         mUsbDeviceList.setAdapter(adapter);
     }
 
-    private void updateSelectedUsbDevice(String deviceId) {
+    private void refleshSocketAddressList() {
+        List<MySocketAddress> items = mDbHelper.findMySocketAddresses();
+        ArrayAdapter<MySocketAddress> adapter = new ArrayAdapter<MySocketAddress>(this,
+                android.R.layout.simple_list_item_1, items);
+        mSocketAddressList.setAdapter(adapter);
+    }
+
+    private void updateSelectedUsbDevice(DeviceInfo deviceInfo) {
         @SuppressWarnings("unchecked")
         ArrayAdapter<ListItem> adapter = (ArrayAdapter<SelectDeviceActivity.ListItem>)mUsbDeviceList
                 .getAdapter();
-        for (int i = 0; i < adapter.getCount(); i++) {
-            ListItem item = adapter.getItem(i);
-            mUsbDeviceList.setItemChecked(i, equalsStr(item.key, deviceId));
+        if (deviceInfo != null) {
+            for (int i = 0; i < adapter.getCount(); i++) {
+                ListItem item = adapter.getItem(i);
+                mUsbDeviceList.setItemChecked(i, equalsDeviceInfo(item.deviceInfo, deviceInfo));
+            }
         }
     }
 
-    private boolean equalsStr(String s1, String s2) {
+    private boolean equalsDeviceInfo(DeviceInfo s1, DeviceInfo s2) {
         if (s1 == null) {
             return s2 == null;
         } else {
@@ -253,14 +277,28 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
     public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
         if (parent.getId() == R.id.usbDeviceList) {
             ListItem item = (ListItem)mUsbDeviceList.getItemAtPosition(position);
-            onSelectUsbItem(item.key);
+            onSelectItem(item.deviceInfo);
+        } else if (parent.getId() == R.id.socketAddressList) {
+            MySocketAddress item = (MySocketAddress)parent.getItemAtPosition(position);
+            onSelectItem(item.toDeviceInfo());
         }
     }
 
-    private void onSelectUsbItem(String itemKey) {
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
+        if (parent.getId() == R.id.socketAddressList) {
+            MySocketAddress item = (MySocketAddress)parent.getItemAtPosition(position);
+            mEditAddrresDialog.show(item);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void onSelectItem(DeviceInfo deviceInfo) {
         try {
-            if (itemKey != null) {
-                mService.connect(itemKey);
+            if (deviceInfo != null) {
+                mService.connect(deviceInfo);
             } else {
                 mService.disconnect();
                 finish();
@@ -268,6 +306,31 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
         } catch (RemoteException e) {
             // Impossible
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * @see EditAddrresDialog.IEditAddrresDialogListener
+     */
+    @Override
+    public void onEditAddrresDialogFinished(MySocketAddress result) {
+        mDbHelper.registerMySocketAddress(result);
+        refleshSocketAddressList();
+    };
+
+    /**
+     * @see EditAddrresDialog.IEditAddrresDialogListener
+     */
+    @Override
+    public void onEditAddrresDialogCanceled() {
+        // none
+    }
+
+    @Override
+    public void onEditAddrresDialogDelete(Long id) {
+        if (id != null) {
+            mDbHelper.deleteMySocketAddress(id);
+            refleshSocketAddressList();
         }
     }
 }

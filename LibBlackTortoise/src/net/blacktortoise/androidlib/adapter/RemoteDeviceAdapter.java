@@ -2,6 +2,7 @@
 package net.blacktortoise.androidlib.adapter;
 
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
+import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.net.RemoteSocketPrepareTask;
 import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
 
@@ -23,5 +24,10 @@ public class RemoteDeviceAdapter extends BtConnectionAdapter {
     @Override
     protected IRawSocketPrepareTask createRawSocketPrepareTask() {
         return new RemoteSocketPrepareTask(mHostname, mPort);
+    }
+
+    @Override
+    public DeviceInfo getDeviceInfo() {
+        return DeviceInfo.createTcp(mHostname, mPort);
     }
 }

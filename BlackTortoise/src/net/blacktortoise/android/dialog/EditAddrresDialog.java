@@ -1,9 +1,9 @@
 
 package net.blacktortoise.android.dialog;
 
-import net.blacktortoise.android.Constants;
-import net.blacktortoise.android.entity.MySocketAddress;
 import net.blacktortoise.android.R;
+import net.blacktortoise.android.entity.MySocketAddress;
+import net.blacktortoise.androidlib.Constants;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;

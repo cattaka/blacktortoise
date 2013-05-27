@@ -1,6 +1,7 @@
 
 package net.blacktortoise.android.entity;
 
+import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.cattaka.util.gendbhandler.Attribute;
 import net.cattaka.util.gendbhandler.GenDbHandler;
 
@@ -43,5 +44,9 @@ public class MySocketAddress {
     @Override
     public String toString() {
         return hostName + ":" + port;
+    }
+
+    public DeviceInfo toDeviceInfo() {
+        return DeviceInfo.createTcp(hostName, port);
     }
 }

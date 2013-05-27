@@ -4,15 +4,17 @@ package net.blacktortoise.androidlib.net;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
 
 import net.blacktortoise.androidlib.Constants;
 import net.cattaka.libgeppa.IRawSocket;
 import android.util.Log;
 
 public class RemoteSocket implements IRawSocket {
-    private SocketAddress mSocketAddress;
+    private String mHostname;
+
+    private int mPort;
 
     private Socket mSocket;
 
@@ -20,15 +22,17 @@ public class RemoteSocket implements IRawSocket {
 
     private OutputStream mOutputStream;
 
-    public RemoteSocket(SocketAddress socketAddress) {
+    public RemoteSocket(String hostname, int port) {
         super();
+        mHostname = hostname;
+        mPort = port;
         mSocket = new Socket();
-        mSocketAddress = socketAddress;
     }
 
     public boolean setup() {
         try {
-            mSocket.connect(mSocketAddress);
+            InetSocketAddress socketAddress = new InetSocketAddress(mHostname, mPort);
+            mSocket.connect(socketAddress);
             mInputStream = mSocket.getInputStream();
             mOutputStream = mSocket.getOutputStream();
             return true;

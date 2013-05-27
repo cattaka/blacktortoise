@@ -2,6 +2,7 @@
 package net.blacktortoise.androidlib.adapter;
 
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
+import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.usb.FtDriverSocketPrepareTask;
 import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
 import android.hardware.usb.UsbDevice;
@@ -28,4 +29,8 @@ public class LocalDeviceAdapter extends BtConnectionAdapter {
         return mUsbDevice;
     }
 
+    @Override
+    public DeviceInfo getDeviceInfo() {
+        return DeviceInfo.createUsb(mUsbDevice.getDeviceName());
+    }
 }

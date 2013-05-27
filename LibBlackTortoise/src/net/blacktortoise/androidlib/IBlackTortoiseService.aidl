@@ -3,6 +3,7 @@ package net.blacktortoise.androidlib;
 
 import net.blacktortoise.androidlib.IBlackTortoiseServiceListener;
 import net.blacktortoise.androidlib.data.BtPacket;
+import net.blacktortoise.androidlib.data.DeviceInfo;
 
 interface IBlackTortoiseService {
 
@@ -10,11 +11,11 @@ interface IBlackTortoiseService {
 
     void unregisterServiceListener(int seq);
 
-    void connect(in String deviceKey);
+    void connect(in DeviceInfo deviceInfo);
 
     void disconnect();
 
-    String getCurrentDeviceKey();
+    DeviceInfo getCurrentDeviceInfo();
 
     /**
      * @see ConnectionThread#sendPacket(net.cattaka.libgeppa.data.IPacket)

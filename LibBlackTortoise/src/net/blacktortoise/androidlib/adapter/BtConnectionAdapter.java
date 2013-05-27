@@ -6,6 +6,7 @@ import net.blacktortoise.androidlib.IDeviceAdapterListener;
 import net.blacktortoise.androidlib.data.BtPacket;
 import net.blacktortoise.androidlib.data.BtPacketFactory;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceState;
 import net.blacktortoise.androidlib.data.OpCode;
 import net.blacktortoise.androidlib.util.DeviceUtil;
@@ -49,7 +50,8 @@ public abstract class BtConnectionAdapter implements IDeviceAdapter {
         public void onConnectionStateChanged(ConnectionState state, ConnectionCode code) {
             DeviceState dState = DeviceUtil.toDeviceState(state);
             DeviceEventCode deCode = DeviceUtil.toDeviceEventCode(code);
-            mListener.onDeviceStateChanged(dState, deCode);
+            DeviceInfo deviceInfo = getDeviceInfo();
+            mListener.onDeviceStateChanged(dState, deCode, deviceInfo);
         }
     };
 

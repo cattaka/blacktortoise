@@ -12,6 +12,7 @@ import net.blacktortoise.androidlib.IDeviceAdapter;
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
 import net.blacktortoise.androidlib.IDeviceCommandAdapter;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceState;
 import android.app.Activity;
 import android.app.Fragment;
@@ -53,7 +54,8 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
         }
 
         @Override
-        public void onDeviceStateChanged(DeviceState state, DeviceEventCode code) {
+        public void onDeviceStateChanged(DeviceState state, DeviceEventCode code,
+                DeviceInfo deviceInfo) {
             // if (state == ConnectionState.CLOSED) {
             // FragmentManager fm = getFragmentManager();
             // for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
@@ -86,7 +88,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
             }
             { // Notifies event to children
                 for (IDeviceAdapterListener listener : mDeviceAdapterListeners) {
-                    listener.onDeviceStateChanged(state, code);
+                    listener.onDeviceStateChanged(state, code, deviceInfo);
                 }
             }
         }

@@ -11,8 +11,11 @@ import net.blacktortoise.androidlib.IDeviceAdapter;
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
 import net.blacktortoise.androidlib.adapter.DummyDeviceAdapter;
 import net.blacktortoise.androidlib.adapter.LocalDeviceAdapter;
+import net.blacktortoise.androidlib.adapter.RemoteDeviceAdapter;
 import net.blacktortoise.androidlib.data.BtPacket;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceInfo;
+import net.blacktortoise.androidlib.data.DeviceInfo.DeviceType;
 import net.blacktortoise.androidlib.data.DeviceState;
 import net.blacktortoise.androidlib.data.OpCode;
 import android.app.Notification;
@@ -67,8 +70,9 @@ public class BlackTortoiseService extends Service {
                     IBlackTortoiseServiceListener listener = (IBlackTortoiseServiceListener)objs[2];
                     try {
                         DeviceState state = (mcThread != null) ? mcThread.getDeviceState() : null;
-                        String deviceKey = pickDeviceKey(mcThread);
-                        listener.onDeviceStateChanged(state, DeviceEventCode.ON_REGISTER, deviceKey);
+                        DeviceInfo deviceInfo = pickDeviceInfo(mcThread);
+                        listener.onDeviceStateChanged(state, DeviceEventCode.ON_REGISTER,
+                                deviceInfo);
 
                         target.mServiceListeners.append((Integer)objs[1], listener);
                     } catch (RemoteException e) {
@@ -82,7 +86,7 @@ public class BlackTortoiseService extends Service {
                     break;
                 }
                 case EVENT_CONNECT: {
-                    target.connect((String)objs[1]);
+                    target.connect((DeviceInfo)objs[1]);
                     break;
                 }
                 case EVENT_DISCONNECT: {
@@ -137,7 +141,8 @@ public class BlackTortoiseService extends Service {
             if (intent.getAction().equals(ACTION_USB_PERMISSION)) {
                 String itemKey = intent.getStringExtra(EXTRA_USB_DEVICE_KEY);
                 if (itemKey != null) {
-                    connect(itemKey);
+                    DeviceInfo deviceInfo = DeviceInfo.createUsb(itemKey);
+                    connect(deviceInfo);
                 }
             }
         }
@@ -161,9 +166,9 @@ public class BlackTortoiseService extends Service {
             }).sendToTarget();
         }
 
-        public void connect(String deviceKey) throws RemoteException {
+        public void connect(DeviceInfo deviceInfo) throws RemoteException {
             sHandler.obtainMessage(EVENT_CONNECT, new Object[] {
-                    me, deviceKey
+                    me, deviceInfo
             }).sendToTarget();
         };
 
@@ -174,8 +179,8 @@ public class BlackTortoiseService extends Service {
         };
 
         @Override
-        public String getCurrentDeviceKey() throws RemoteException {
-            return me.getCurrentDeviceKey();
+        public DeviceInfo getCurrentDeviceInfo() throws RemoteException {
+            return me.getCurrentDeviceInfo();
         }
 
         @Override
@@ -262,17 +267,18 @@ public class BlackTortoiseService extends Service {
         };
 
         @Override
-        public void onDeviceStateChanged(final DeviceState state, final DeviceEventCode code) {
+        public void onDeviceStateChanged(final DeviceState state, final DeviceEventCode code,
+                final DeviceInfo deviceInfo) {
             AidlUtil.callMethods(mServiceListeners,
                     new CallFunction<IBlackTortoiseServiceListener>() {
                         public boolean run(IBlackTortoiseServiceListener item)
                                 throws RemoteException {
 
-                            item.onDeviceStateChanged(state, code, getCurrentDeviceKey());
+                            item.onDeviceStateChanged(state, code, getCurrentDeviceInfo());
                             return true;
                         };
                     });
-            handleConnectedNotification(state == DeviceState.CONNECTED, getCurrentDeviceKey());
+            handleConnectedNotification(state == DeviceState.CONNECTED, getCurrentDeviceInfo());
         }
     };
 
@@ -308,21 +314,22 @@ public class BlackTortoiseService extends Service {
         unregisterReceiver(mUsbReceiver);
     }
 
-    private void connect(String deviceKey) {
+    private void connect(DeviceInfo deviceInfo) {
         disconnect();
 
-        if (Constants.DUMMY_DEVICE_ID.equals(deviceKey)) {
-            mDeviceAdapter = new DummyDeviceAdapter(mDeviceAdapterListener, sHandler);
+        if (deviceInfo.getDeviceType() == DeviceType.TCP) {
+            mDeviceAdapter = new RemoteDeviceAdapter(mDeviceAdapterListener, true,
+                    deviceInfo.getTcpHostName(), deviceInfo.getTcpPort());
             try {
                 mDeviceAdapter.startAdapter();
             } catch (InterruptedException e) {
                 // Impossible
                 throw new RuntimeException(e);
             }
-        } else {
+        } else if (deviceInfo.getDeviceType() == DeviceType.USB) {
             UsbManager usbManager = (UsbManager)getSystemService(USB_SERVICE);
             Map<String, UsbDevice> devices = usbManager.getDeviceList();
-            UsbDevice usbDevice = devices.get(deviceKey);
+            UsbDevice usbDevice = devices.get(deviceInfo.getUsbDeviceKey());
             if (usbManager.hasPermission(usbDevice)) {
                 // If service already has permission, it start thread.
                 mDeviceAdapter = new LocalDeviceAdapter(mDeviceAdapterListener, true, usbManager,
@@ -336,9 +343,17 @@ public class BlackTortoiseService extends Service {
             } else {
                 // Request
                 Intent intent = new Intent(ACTION_USB_PERMISSION);
-                intent.putExtra(EXTRA_USB_DEVICE_KEY, deviceKey);
+                intent.putExtra(EXTRA_USB_DEVICE_KEY, deviceInfo.getUsbDeviceKey());
                 PendingIntent pIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
                 usbManager.requestPermission(usbDevice, pIntent);
+            }
+        } else {
+            mDeviceAdapter = new DummyDeviceAdapter(mDeviceAdapterListener, sHandler);
+            try {
+                mDeviceAdapter.startAdapter();
+            } catch (InterruptedException e) {
+                // Impossible
+                throw new RuntimeException(e);
             }
         }
     }
@@ -355,16 +370,17 @@ public class BlackTortoiseService extends Service {
         }
     }
 
-    private void handleConnectedNotification(boolean connected, String deviceKey) {
+    private void handleConnectedNotification(boolean connected, DeviceInfo deviceInfo) {
         NotificationManager manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         if (connected) {
             Intent intent = new Intent(this, SelectDeviceActivity.class);
-            PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
+            PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
 
             Notification.Builder builder = new Notification.Builder(this);
             builder.setContentIntent(pIntent);
             builder.setContentTitle(getText(R.string.notification_title_connected));
-            builder.setContentText(deviceKey);
+            builder.setContentText(deviceInfo.getLabel());
             builder.setSmallIcon(R.drawable.ic_launcher);
             @SuppressWarnings("deprecation")
             Notification nortification = builder.getNotification();
@@ -374,15 +390,13 @@ public class BlackTortoiseService extends Service {
         }
     }
 
-    private String getCurrentDeviceKey() {
-        return pickDeviceKey(mDeviceAdapter);
+    private DeviceInfo getCurrentDeviceInfo() {
+        return pickDeviceInfo(mDeviceAdapter);
     }
 
-    private static String pickDeviceKey(IDeviceAdapter adapter) {
-        if (adapter instanceof LocalDeviceAdapter) {
-            return ((LocalDeviceAdapter)adapter).getUsbDevice().getDeviceName();
-        } else if (adapter instanceof DummyDeviceAdapter) {
-            return Constants.DUMMY_DEVICE_ID;
+    private static DeviceInfo pickDeviceInfo(IDeviceAdapter adapter) {
+        if (adapter != null) {
+            return adapter.getDeviceInfo();
         } else {
             return null;
         }

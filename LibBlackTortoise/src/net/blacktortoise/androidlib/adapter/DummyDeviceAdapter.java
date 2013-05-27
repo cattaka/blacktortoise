@@ -5,6 +5,7 @@ import net.blacktortoise.androidlib.IDeviceAdapter;
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
 import net.blacktortoise.androidlib.data.BtPacket;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceState;
 import android.os.Handler;
 
@@ -25,8 +26,11 @@ public class DummyDeviceAdapter implements IDeviceAdapter {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                mListener.onDeviceStateChanged(DeviceState.CONNECTING, DeviceEventCode.UNKNOWN);
-                mListener.onDeviceStateChanged(DeviceState.CONNECTED, DeviceEventCode.UNKNOWN);
+                DeviceInfo deviceInfo = getDeviceInfo();
+                mListener.onDeviceStateChanged(DeviceState.CONNECTING, DeviceEventCode.UNKNOWN,
+                        deviceInfo);
+                mListener.onDeviceStateChanged(DeviceState.CONNECTED, DeviceEventCode.UNKNOWN,
+                        deviceInfo);
                 mLastDeviceState = DeviceState.CONNECTED;
             }
         });
@@ -37,7 +41,9 @@ public class DummyDeviceAdapter implements IDeviceAdapter {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                mListener.onDeviceStateChanged(DeviceState.CLOSED, DeviceEventCode.DISCONNECTED);
+                DeviceInfo deviceInfo = getDeviceInfo();
+                mListener.onDeviceStateChanged(DeviceState.CLOSED, DeviceEventCode.DISCONNECTED,
+                        deviceInfo);
                 mLastDeviceState = DeviceState.CLOSED;
             }
         });
@@ -71,5 +77,10 @@ public class DummyDeviceAdapter implements IDeviceAdapter {
     @Override
     public boolean sendEcho(byte[] data) {
         return true;
+    }
+
+    @Override
+    public DeviceInfo getDeviceInfo() {
+        return DeviceInfo.createDummy();
     }
 }

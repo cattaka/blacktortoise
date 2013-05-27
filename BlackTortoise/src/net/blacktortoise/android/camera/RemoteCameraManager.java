@@ -5,6 +5,7 @@ import net.blacktortoise.android.fragment.BaseFragment.IBaseFragmentAdapter;
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
 import net.blacktortoise.androidlib.IDeviceCommandAdapter;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceState;
 import android.graphics.Bitmap;
 
@@ -55,7 +56,7 @@ public class RemoteCameraManager implements ICameraManager, IDeviceAdapterListen
     }
 
     @Override
-    public void onDeviceStateChanged(DeviceState state, DeviceEventCode code) {
+    public void onDeviceStateChanged(DeviceState state, DeviceEventCode code, DeviceInfo deviceInfo) {
         // none
     }
 

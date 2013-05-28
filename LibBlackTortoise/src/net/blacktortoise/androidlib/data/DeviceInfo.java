@@ -15,6 +15,8 @@ public class DeviceInfo implements Parcelable {
 
     private static final String KEY_TCP_PORT = "tcpPort";
 
+    private static final String KEY_SUPPORT_CAMERA = "supportCamera";
+
     public enum DeviceType {
         DUMMY, SERVICE, USB, TCP;
         public static DeviceType valueOfOrdinal(int ordinal) {
@@ -35,26 +37,22 @@ public class DeviceInfo implements Parcelable {
 
     private int mTcpPort;
 
-    public static DeviceInfo createDummy() {
+    private boolean mSupportCamera;
+
+    public static DeviceInfo createDummy(boolean supportCamera) {
         DeviceInfo info = new DeviceInfo();
         info.mDeviceType = DeviceType.DUMMY;
         return info;
     }
 
-    public static DeviceInfo createService() {
-        DeviceInfo info = new DeviceInfo();
-        info.mDeviceType = DeviceType.SERVICE;
-        return info;
-    }
-
-    public static DeviceInfo createUsb(String devicekey) {
+    public static DeviceInfo createUsb(String devicekey, boolean supportCamera) {
         DeviceInfo info = new DeviceInfo();
         info.mDeviceType = DeviceType.USB;
         info.mUsbDeviceKey = devicekey;
         return info;
     }
 
-    public static DeviceInfo createTcp(String hostname, int port) {
+    public static DeviceInfo createTcp(String hostname, int port, boolean supportCamera) {
         DeviceInfo info = new DeviceInfo();
         info.mDeviceType = DeviceType.TCP;
         info.mTcpHostName = hostname;
@@ -97,6 +95,10 @@ public class DeviceInfo implements Parcelable {
         return mTcpPort;
     }
 
+    public boolean isSupportCamera() {
+        return mSupportCamera;
+    }
+
     private <T> boolean equalsValue(T s1, T s2) {
         if (s1 == null) {
             return s2 == null;
@@ -128,6 +130,7 @@ public class DeviceInfo implements Parcelable {
         bundle.putString(KEY_USB_DEVICE_KEY, mUsbDeviceKey);
         bundle.putString(KEY_TCP_HOSTNAME, mTcpHostName);
         bundle.putInt(KEY_TCP_PORT, mTcpPort);
+        bundle.putBoolean(KEY_SUPPORT_CAMERA, mSupportCamera);
         dest.writeBundle(bundle);
     }
 
@@ -145,6 +148,7 @@ public class DeviceInfo implements Parcelable {
             info.mUsbDeviceKey = bundle.getString(KEY_USB_DEVICE_KEY);
             info.mTcpHostName = bundle.getString(KEY_TCP_HOSTNAME);
             info.mTcpPort = bundle.getInt(KEY_TCP_PORT, Constants.DEFAULT_SERVER_PORT);
+            info.mSupportCamera = bundle.getBoolean(KEY_SUPPORT_CAMERA);
             return info;
         }
     };

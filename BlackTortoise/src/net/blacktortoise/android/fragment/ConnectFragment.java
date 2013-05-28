@@ -4,11 +4,8 @@ package net.blacktortoise.android.fragment;
 import net.blacktortoise.android.BlackTortoiseService;
 import net.blacktortoise.android.R;
 import net.blacktortoise.android.SelectDeviceActivity;
-import net.blacktortoise.android.seed.BtServiceDeviceAdapterSeed;
 import net.blacktortoise.androidlib.IBlackTortoiseService;
-import net.blacktortoise.androidlib.data.DeviceEventCode;
 import net.blacktortoise.androidlib.data.DeviceInfo;
-import net.blacktortoise.androidlib.data.DeviceState;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -87,16 +84,7 @@ public class ConnectFragment extends BaseFragment implements OnClickListener {
     }
 
     private void connectToService() {
-        BtServiceDeviceAdapterSeed seed = new BtServiceDeviceAdapterSeed();
-        getBaseFragmentAdapter().startDeviceAdapter(seed);
-    }
-
-    @Override
-    public void onDeviceStateChanged(DeviceState state, DeviceEventCode code, DeviceInfo deviceInfo) {
-        super.onDeviceStateChanged(state, code, deviceInfo);
-        if (state == DeviceState.CONNECTED) {
-            MainMenuFragment nextFragment = new MainMenuFragment();
-            replacePrimaryFragment(nextFragment, false);
-        }
+        MainMenuFragment nextFragment = new MainMenuFragment();
+        replacePrimaryFragment(nextFragment, false);
     }
 }

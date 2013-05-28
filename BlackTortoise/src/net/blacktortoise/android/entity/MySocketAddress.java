@@ -47,6 +47,6 @@ public class MySocketAddress {
     }
 
     public DeviceInfo toDeviceInfo() {
-        return DeviceInfo.createTcp(hostName, port);
+        return DeviceInfo.createTcp(hostName, port, true);
     }
 }

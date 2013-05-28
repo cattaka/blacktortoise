@@ -2,8 +2,9 @@
 package net.blacktortoise.android.camera;
 
 import net.blacktortoise.android.fragment.BaseFragment.IBaseFragmentAdapter;
+import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
-import net.blacktortoise.androidlib.IDeviceCommandAdapter;
+import net.blacktortoise.androidlib.data.BtPacket;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
 import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceState;
@@ -48,9 +49,9 @@ public class RemoteCameraManager implements ICameraManager, IDeviceAdapterListen
     public void setEnablePreview(boolean enablePreview) {
         mEnablePreview = enablePreview;
         if (mEnablePreview && !mRequested) {
-            IDeviceCommandAdapter commandAdapter = mBaseFragmentAdapter.getCommandAdapter();
-            if (commandAdapter != null) {
-                mRequested = commandAdapter.sendRequestCameraImage();
+            BlackTortoiseServiceWrapper wrapper = mBaseFragmentAdapter.getServiceWrapper();
+            if (wrapper != null) {
+                mRequested = wrapper.requestCameraImage();
             }
         }
     }
@@ -61,16 +62,16 @@ public class RemoteCameraManager implements ICameraManager, IDeviceAdapterListen
     }
 
     @Override
-    public void onReceiveEcho(byte[] data) {
+    public void onReceive(BtPacket packet) {
         // none
     }
 
     @Override
     public void onReceiveCameraImage(int cameraIdx, Bitmap bitmap) {
         mCameraManagerAdapter.onPictureTaken(bitmap, this);
-        IDeviceCommandAdapter commandAdapter = mBaseFragmentAdapter.getCommandAdapter();
-        if (commandAdapter != null) {
-            mRequested = commandAdapter.sendRequestCameraImage();
+        BlackTortoiseServiceWrapper wrapper = mBaseFragmentAdapter.getServiceWrapper();
+        if (wrapper != null) {
+            mRequested = wrapper.requestCameraImage();
         }
     }
 }

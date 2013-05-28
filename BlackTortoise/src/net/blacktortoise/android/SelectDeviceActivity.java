@@ -221,7 +221,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
             items.add(new ListItem(getString(R.string.item_disconnect), null));
         }
         { // Add an item of dummy
-            items.add(new ListItem(getString(R.string.item_dummy), DeviceInfo.createDummy()));
+            items.add(new ListItem(getString(R.string.item_dummy), DeviceInfo.createDummy(false)));
         }
         { // Creates list items
             HashMap<String, UsbDevice> deviceMap = usbman.getDeviceList();
@@ -230,7 +230,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
                 String name = UsbClass.parce(d.getDeviceClass()).name();
                 String label = String.format("%s(%04X:%04X)", name, d.getVendorId(),
                         d.getProductId());
-                items.add(new ListItem(label, DeviceInfo.createUsb(entry.getKey())));
+                items.add(new ListItem(label, DeviceInfo.createUsb(entry.getKey(), false)));
             }
         }
 

@@ -4,12 +4,16 @@ package net.blacktortoise.android.fragment;
 import java.util.Locale;
 
 import net.blacktortoise.android.R;
+import net.blacktortoise.android.camera.DeviceCameraManager;
 import net.blacktortoise.android.camera.ICameraManager;
 import net.blacktortoise.android.camera.ICameraManagerAdapter;
-import net.blacktortoise.android.util.CommandAdapterUtil;
+import net.blacktortoise.android.camera.RemoteCameraManager;
 import net.blacktortoise.android.util.NormalizedOnTouchListener;
-import net.blacktortoise.androidlib.IDeviceCommandAdapter;
+import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
 import net.blacktortoise.androidlib.data.BtPacket;
+import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceInfo;
+import net.blacktortoise.androidlib.data.DeviceState;
 import net.blacktortoise.androidlib.data.OpCode;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -45,9 +49,9 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
                         mHeadValueText.setText(text);
                     }
                     { // Sends command
-                        IDeviceCommandAdapter adapter = getCommandAdapter();
-                        if (adapter != null) {
-                            adapter.sendHead(yaw, pitch);
+                        BlackTortoiseServiceWrapper wrapper = getServiceWrapper();
+                        if (wrapper != null) {
+                            wrapper.sendHead(yaw, pitch);
                         }
                     }
                     lastSendHeadTime = t;
@@ -63,15 +67,27 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
                         mMoveValueText.setText(text);
                     }
                     { // Sends command
-                        IDeviceCommandAdapter adapter = getCommandAdapter();
-                        if (adapter != null) {
-                            CommandAdapterUtil.sendMove(adapter, forward, turn);
+                        BlackTortoiseServiceWrapper wrapper = getServiceWrapper();
+                        if (wrapper != null) {
+                            wrapper.sendMove(forward, turn);
                         }
                     }
                     lastSendMoveTime = t;
                 }
             }
             return true;
+        }
+    };
+
+    private ICameraManagerAdapter mCameraManagerAdapter = new ICameraManagerAdapter() {
+        @Override
+        public SurfaceView getSurfaceView() {
+            return mCameraSurfaceView;
+        }
+
+        @Override
+        public void onPictureTaken(Bitmap bitmap, ICameraManager cameraManager) {
+            mCameraImageView.setImageBitmap(bitmap);
         }
     };
 
@@ -102,43 +118,30 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
         view.findViewById(R.id.clearButton).setOnClickListener(this);
         mCameraImageView.setOnClickListener(this);
 
-        mCameraManager = createCameraManager(new ICameraManagerAdapter() {
-            @Override
-            public SurfaceView getSurfaceView() {
-                return mCameraSurfaceView;
-            }
-
-            @Override
-            public void onPictureTaken(Bitmap bitmap, ICameraManager cameraManager) {
-                mCameraImageView.setImageBitmap(bitmap);
-            }
-        });
-        mCameraManager.setEnablePreview(true);
-
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mCameraManager.onResume();
+        prepareCameraManager(null);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mCameraManager.onPause();
+        disposeCameraManager();
     }
 
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.sendButton) {
-            IDeviceCommandAdapter adapter = getCommandAdapter();
-            if (adapter != null) {
+            BlackTortoiseServiceWrapper wrapper = getServiceWrapper();
+            if (wrapper != null) {
                 EditText sendText = (EditText)getView().findViewById(R.id.sendEdit);
                 byte[] data = String.valueOf(sendText.getText()).getBytes();
                 BtPacket packet = new BtPacket(OpCode.ECHO, data.length, data);
-                adapter.sendPacket(packet);
+                wrapper.sendPacket(packet);
             }
         } else if (v.getId() == R.id.clearButton) {
             TextView receivedText = (TextView)getView().findViewById(R.id.receivedText);
@@ -150,10 +153,51 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
     }
 
     @Override
-    public void onReceiveEcho(byte[] data) {
-        super.onReceiveEcho(data);
-        String str = new String(data);
-        TextView receivedText = (TextView)getView().findViewById(R.id.receivedText);
-        receivedText.setText(receivedText.getText() + str);
+    public void onReceive(BtPacket packet) {
+        super.onReceive(packet);
+        if (packet.getOpCode() == OpCode.ECHO) {
+            String str = new String(packet.getData());
+            TextView receivedText = (TextView)getView().findViewById(R.id.receivedText);
+            receivedText.setText(receivedText.getText() + str);
+        }
+    }
+
+    @Override
+    public void onDeviceStateChanged(DeviceState state, DeviceEventCode code, DeviceInfo deviceInfo) {
+        super.onDeviceStateChanged(state, code, deviceInfo);
+        switch (state) {
+            case CONNECTED:
+                prepareCameraManager(deviceInfo);
+                break;
+            default:
+                disposeCameraManager();
+                break;
+        }
+    }
+
+    private void prepareCameraManager(DeviceInfo info) {
+        if (info == null) {
+            BlackTortoiseServiceWrapper wrapper = getServiceWrapper();
+            if (wrapper != null) {
+                info = wrapper.getCurrentDeviceInfo();
+            }
+        }
+        if (info != null && mCameraManager == null) {
+            if (info.isSupportCamera()) {
+                mCameraManager = new RemoteCameraManager();
+            } else {
+                mCameraManager = new DeviceCameraManager();
+            }
+            mCameraManager.setup(mCameraManagerAdapter, getBaseFragmentAdapter());
+            mCameraManager.onResume();
+            mCameraManager.setEnablePreview(true);
+        }
+    }
+
+    private void disposeCameraManager() {
+        if (mCameraManager != null) {
+            mCameraManager.onPause();
+            mCameraManager = null;
+        }
     }
 }

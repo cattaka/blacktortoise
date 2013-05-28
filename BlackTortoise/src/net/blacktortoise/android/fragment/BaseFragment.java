@@ -1,11 +1,9 @@
 
 package net.blacktortoise.android.fragment;
 
-import net.blacktortoise.android.camera.ICameraManager;
-import net.blacktortoise.android.camera.ICameraManagerAdapter;
-import net.blacktortoise.android.seed.IDeviceAdapterSeed;
+import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
-import net.blacktortoise.androidlib.IDeviceCommandAdapter;
+import net.blacktortoise.androidlib.data.BtPacket;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
 import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceState;
@@ -29,13 +27,9 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
 
         public void unregisterReceiver(BroadcastReceiver receiver);
 
-        public void startDeviceAdapter(IDeviceAdapterSeed seed);
-
         public void replacePrimaryFragment(Fragment fragment, boolean withBackStack);
 
-        public IDeviceCommandAdapter getCommandAdapter();
-
-        public ICameraManager createCameraManager();
+        public BlackTortoiseServiceWrapper getServiceWrapper();
 
         public boolean registerDeviceAdapterListener(IDeviceAdapterListener listener);
 
@@ -75,7 +69,7 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
 
     /** Please override if you need. */
     @Override
-    public void onReceiveEcho(byte[] data) {
+    public void onReceive(BtPacket packet) {
         // none
     }
 
@@ -100,14 +94,6 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
         getBaseFragmentAdapter().replacePrimaryFragment(fragment, withBackStack);
     }
 
-    public ICameraManager createCameraManager(ICameraManagerAdapter adapter) {
-        ICameraManager cameraManager = getBaseFragmentAdapter().createCameraManager();
-        if (cameraManager != null) {
-            cameraManager.setup(adapter, getBaseFragmentAdapter());
-        }
-        return cameraManager;
-    }
-
     /** Do only delegation */
     public boolean registerDeviceAdapterListener(IDeviceAdapterListener listener) {
         return getBaseFragmentAdapter().registerDeviceAdapterListener(listener);
@@ -123,8 +109,8 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
         getBaseFragmentAdapter().runOnUiThread(action);
     }
 
-    public IDeviceCommandAdapter getCommandAdapter() {
-        return getBaseFragmentAdapter().getCommandAdapter();
+    public BlackTortoiseServiceWrapper getServiceWrapper() {
+        return getBaseFragmentAdapter().getServiceWrapper();
     }
 
     public void setKeepScreen(boolean flag) {

@@ -60,27 +60,17 @@ public class DummyDeviceAdapter implements IDeviceAdapter {
     }
 
     @Override
-    public boolean sendMove(float leftMotor1, float leftMotor2, float rightMotor1, float rightMotor2) {
-        return true;
-    }
-
-    @Override
-    public boolean sendHead(float yaw, float pitch) {
-        return true;
-    }
-
-    @Override
     public boolean sendRequestCameraImage() {
         return true;
     }
 
     @Override
-    public boolean sendEcho(byte[] data) {
-        return true;
+    public DeviceInfo getDeviceInfo() {
+        return DeviceInfo.createDummy(false);
     }
 
     @Override
-    public DeviceInfo getDeviceInfo() {
-        return DeviceInfo.createDummy();
+    public boolean isCameraSupported() {
+        return false;
     }
 }

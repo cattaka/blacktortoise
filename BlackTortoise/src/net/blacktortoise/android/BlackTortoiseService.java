@@ -17,7 +17,6 @@ import net.blacktortoise.androidlib.data.DeviceEventCode;
 import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceInfo.DeviceType;
 import net.blacktortoise.androidlib.data.DeviceState;
-import net.blacktortoise.androidlib.data.OpCode;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -53,12 +52,6 @@ public class BlackTortoiseService extends Service {
     private static final int EVENT_REQUEST_CAMERA_IMAGE = 5;
 
     private static final int EVENT_SEND_PACKET = 6;
-
-    private static final int EVENT_SEND_MOVE = 7;
-
-    private static final int EVENT_SEND_HEAD = 8;
-
-    private static final int EVENT_SEND_ECHO = 9;
 
     private static Handler sHandler = new Handler() {
         public void handleMessage(android.os.Message msg) {
@@ -105,21 +98,6 @@ public class BlackTortoiseService extends Service {
                                 mcThread.sendPacket((BtPacket)objs[1]);
                                 break;
                             }
-                            case EVENT_SEND_MOVE: {
-                                float[] vs = (float[])objs[1];
-                                mcThread.sendMove(vs[0], vs[1], vs[2], vs[3]);
-                                break;
-                            }
-                            case EVENT_SEND_HEAD: {
-                                float[] vs = (float[])objs[1];
-                                mcThread.sendHead(vs[0], vs[1]);
-                                break;
-                            }
-                            case EVENT_SEND_ECHO: {
-                                byte[] data = (byte[])objs[1];
-                                mcThread.sendEcho(data);
-                                break;
-                            }
                         }
                     }
                     break;
@@ -141,7 +119,7 @@ public class BlackTortoiseService extends Service {
             if (intent.getAction().equals(ACTION_USB_PERMISSION)) {
                 String itemKey = intent.getStringExtra(EXTRA_USB_DEVICE_KEY);
                 if (itemKey != null) {
-                    DeviceInfo deviceInfo = DeviceInfo.createUsb(itemKey);
+                    DeviceInfo deviceInfo = DeviceInfo.createUsb(itemKey, false);
                     connect(deviceInfo);
                 }
             }
@@ -206,46 +184,6 @@ public class BlackTortoiseService extends Service {
                 return false;
             }
         }
-
-        @Override
-        public boolean sendMove(float leftMotor1, float leftMotor2, float rightMotor1,
-                float rightMotor2) throws RemoteException {
-            if (mDeviceAdapter != null) {
-                sHandler.obtainMessage(EVENT_SEND_MOVE, new Object[] {
-                        me, new float[] {
-                                leftMotor1, leftMotor2, rightMotor1, rightMotor2
-                        }
-                }).sendToTarget();
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        @Override
-        public boolean sendHead(float yaw, float pitch) throws RemoteException {
-            if (mDeviceAdapter != null) {
-                sHandler.obtainMessage(EVENT_SEND_HEAD, new Object[] {
-                        me, new float[] {
-                                yaw, pitch
-                        }
-                }).sendToTarget();
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        public boolean sendEcho(byte[] data) throws RemoteException {
-            if (mDeviceAdapter != null) {
-                sHandler.obtainMessage(EVENT_SEND_ECHO, new Object[] {
-                        me, data
-                }).sendToTarget();
-                return true;
-            } else {
-                return false;
-            }
-        };
     };
 
     private IDeviceAdapterListener mDeviceAdapterListener = new IDeviceAdapterListener() {
@@ -254,8 +192,7 @@ public class BlackTortoiseService extends Service {
             // Not used.
         }
 
-        public void onReceiveEcho(byte[] data) {
-            final BtPacket packet = new BtPacket(OpCode.ECHO, data.length, data);
+        public void onReceive(final BtPacket packet) {
             AidlUtil.callMethods(mServiceListeners,
                     new CallFunction<IBlackTortoiseServiceListener>() {
                         public boolean run(IBlackTortoiseServiceListener item)

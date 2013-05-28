@@ -4,93 +4,40 @@ package net.blacktortoise.android;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.blacktortoise.android.camera.ICameraManager;
 import net.blacktortoise.android.fragment.BaseFragment.IBaseFragmentAdapter;
 import net.blacktortoise.android.fragment.ConnectFragment;
-import net.blacktortoise.android.seed.IDeviceAdapterSeed;
-import net.blacktortoise.androidlib.IDeviceAdapter;
+import net.blacktortoise.androidlib.BlackTortoiseFunctions;
+import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
+import net.blacktortoise.androidlib.IBlackTortoiseService;
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
-import net.blacktortoise.androidlib.IDeviceCommandAdapter;
-import net.blacktortoise.androidlib.data.DeviceEventCode;
-import net.blacktortoise.androidlib.data.DeviceInfo;
-import net.blacktortoise.androidlib.data.DeviceState;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
-import android.graphics.Bitmap;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.StrictMode;
 import android.view.Menu;
 import android.view.WindowManager;
 
 public class MainActivity extends Activity implements IBaseFragmentAdapter {
-    private MainActivity me = this;
-
-    private IDeviceAdapter mDeviceAdapter;
-
-    private IDeviceAdapterSeed mDeviceAdapterSeed;
+    private BlackTortoiseServiceWrapper mServiceWrapper;
 
     private List<IDeviceAdapterListener> mDeviceAdapterListeners;
 
-    private IDeviceAdapterListener mConnectionThreadListener = new IDeviceAdapterListener() {
-        private ProgressDialog nowConnectiondDialog;
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
-        public void onReceiveEcho(byte[] data) {
-            // Notifies event to children
-            for (IDeviceAdapterListener listener : mDeviceAdapterListeners) {
-                listener.onReceiveEcho(data);
-            }
+        public void onServiceDisconnected(ComponentName name) {
+            mServiceWrapper = null;
         }
 
         @Override
-        public void onReceiveCameraImage(int cameraIdx, Bitmap bitmap) {
-            // Notifies event to children
-            for (IDeviceAdapterListener listener : mDeviceAdapterListeners) {
-                listener.onReceiveCameraImage(cameraIdx, bitmap);
-            }
-        }
-
-        @Override
-        public void onDeviceStateChanged(DeviceState state, DeviceEventCode code,
-                DeviceInfo deviceInfo) {
-            // if (state == ConnectionState.CLOSED) {
-            // FragmentManager fm = getFragmentManager();
-            // for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
-            // fm.popBackStack();
-            // }
-            // ConnectFragment nextFragment = new ConnectFragment();
-            // replacePrimaryFragment(nextFragment, false);
-            // }
-            if (state == DeviceState.CONNECTING) {
-                if (nowConnectiondDialog == null) {
-                    nowConnectiondDialog = new ProgressDialog(me);
-                    nowConnectiondDialog.setMessage(me.getText(R.string.msg_now_connecting));
-                    nowConnectiondDialog
-                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
-
-                                @Override
-                                public void onCancel(DialogInterface dialog) {
-                                    stopConnectionThread();
-                                }
-                            });
-                    nowConnectiondDialog.show();
-                }
-            } else // if (state == ConnectionState.CONNECTED || state ==
-                   // ConnectionState.CLOSED)
-            {
-                if (nowConnectiondDialog != null) {
-                    nowConnectiondDialog.dismiss();
-                    nowConnectiondDialog = null;
-                }
-            }
-            { // Notifies event to children
-                for (IDeviceAdapterListener listener : mDeviceAdapterListeners) {
-                    listener.onDeviceStateChanged(state, code, deviceInfo);
-                }
-            }
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            IBlackTortoiseService service = IBlackTortoiseService.Stub.asInterface(binder);
+            mServiceWrapper = new BlackTortoiseServiceWrapper(service);
         }
     };
 
@@ -124,44 +71,15 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     @Override
     protected void onResume() {
         super.onResume();
-        { // If last connected device exists, start conectionThread again.
-            if (mDeviceAdapterSeed != null) {
-                startDeviceAdapter(mDeviceAdapterSeed);
-            }
-        }
+        Intent service = BlackTortoiseFunctions.createServiceIntent();
+        startService(service);
+        bindService(service, mServiceConnection, 0);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        stopConnectionThread();
-    }
-
-    public void startDeviceAdapter(IDeviceAdapterSeed deviceAdapterSeed) {
-        mDeviceAdapterSeed = deviceAdapterSeed;
-
-        stopConnectionThread();
-
-        mDeviceAdapter = mDeviceAdapterSeed.createDeviceAdapter(this, mConnectionThreadListener);
-
-        try {
-            mDeviceAdapter.startAdapter();
-        } catch (InterruptedException e) {
-            // Impossible
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void stopConnectionThread() {
-        if (mDeviceAdapter != null) {
-            try {
-                mDeviceAdapter.stopAdapter();
-            } catch (InterruptedException e) {
-                // Impossible
-                throw new RuntimeException(e);
-            }
-            mDeviceAdapter = null;
-        }
+        unbindService(mServiceConnection);
     }
 
     @Override
@@ -175,17 +93,8 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     }
 
     @Override
-    public ICameraManager createCameraManager() {
-        if (mDeviceAdapterSeed != null && mDeviceAdapter != null) {
-            return mDeviceAdapterSeed.createCameraManager();
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public IDeviceCommandAdapter getCommandAdapter() {
-        return mDeviceAdapter;
+    public BlackTortoiseServiceWrapper getServiceWrapper() {
+        return mServiceWrapper;
     }
 
     @Override
@@ -209,19 +118,6 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (getFragmentManager().getBackStackEntryCount() == 0 && mDeviceAdapter != null) {
-            stopConnectionThread();
-            mDeviceAdapterSeed = null;
-            ConnectFragment next = new ConnectFragment();
-            replacePrimaryFragment(next, false);
-            return;
-        } else {
-            super.onBackPressed();
         }
     }
 }

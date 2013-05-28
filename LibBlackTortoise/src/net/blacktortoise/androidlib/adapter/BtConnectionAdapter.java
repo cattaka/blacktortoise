@@ -42,7 +42,7 @@ public abstract class BtConnectionAdapter implements IDeviceAdapter {
                     mListener.onReceiveCameraImage(cameraIdx, bitmap);
                 }
             } else {
-                mListener.onReceiveEcho(packet.getData());
+                mListener.onReceive(packet);
             }
         }
 
@@ -80,30 +80,6 @@ public abstract class BtConnectionAdapter implements IDeviceAdapter {
     @Override
     public boolean sendPacket(BtPacket packet) {
         return mConnectionThread.sendPacket(packet);
-    }
-
-    @Override
-    public boolean sendMove(float leftMotor1, float leftMotor2, float rightMotor1, float rightMotor2) {
-        mBuffer[0] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * leftMotor1)));
-        mBuffer[1] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * leftMotor2)));
-        mBuffer[2] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * rightMotor1)));
-        mBuffer[3] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * rightMotor2)));
-        BtPacket packet = new BtPacket(OpCode.MOVE, 4, mBuffer);
-        return sendPacket(packet);
-    }
-
-    @Override
-    public boolean sendHead(float yaw, float pitch) {
-        mBuffer[0] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * yaw)));
-        mBuffer[1] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * pitch)));
-        BtPacket packet = new BtPacket(OpCode.HEAD, 2, mBuffer);
-        return sendPacket(packet);
-    }
-
-    @Override
-    public boolean sendEcho(byte[] data) {
-        BtPacket packet = new BtPacket(OpCode.ECHO, data.length, data);
-        return sendPacket(packet);
     }
 
     @Override

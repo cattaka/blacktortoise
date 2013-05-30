@@ -173,8 +173,8 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
     }
 
     @Override
-    public void onReceive(BtPacket packet) {
-        super.onReceive(packet);
+    public void onReceivePacket(BtPacket packet) {
+        super.onReceivePacket(packet);
         mServerThread.sendPacket(packet);
     }
 

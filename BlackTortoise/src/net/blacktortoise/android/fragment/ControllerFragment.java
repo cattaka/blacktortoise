@@ -153,8 +153,8 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
     }
 
     @Override
-    public void onReceive(BtPacket packet) {
-        super.onReceive(packet);
+    public void onReceivePacket(BtPacket packet) {
+        super.onReceivePacket(packet);
         if (packet.getOpCode() == OpCode.ECHO) {
             String str = new String(packet.getData());
             TextView receivedText = (TextView)getView().findViewById(R.id.receivedText);

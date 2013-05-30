@@ -21,9 +21,4 @@ interface IBlackTortoiseService {
      * @see ConnectionThread#sendPacket(net.cattaka.libgeppa.data.IPacket)
      */
     boolean sendPacket(in BtPacket packet);
-
-    /**
-     * @return If putting to queue is succeed it returns true, otherwise false.
-     */
-    boolean requestCameraImage();
 }

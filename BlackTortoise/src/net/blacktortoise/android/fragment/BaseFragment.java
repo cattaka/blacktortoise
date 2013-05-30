@@ -38,7 +38,6 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
         public void runOnUiThread(Runnable action);
 
         public void setKeepScreen(boolean flag);
-
     }
 
     public IBaseFragmentAdapter getBaseFragmentAdapter() {
@@ -69,13 +68,7 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
 
     /** Please override if you need. */
     @Override
-    public void onReceive(BtPacket packet) {
-        // none
-    }
-
-    /** Please override if you need. */
-    @Override
-    public void onReceiveCameraImage(int cameraIdx, android.graphics.Bitmap bitmat) {
+    public void onReceivePacket(BtPacket packet) {
         // none
     }
 
@@ -116,4 +109,5 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
     public void setKeepScreen(boolean flag) {
         getBaseFragmentAdapter().setKeepScreen(flag);
     }
+
 }

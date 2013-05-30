@@ -9,7 +9,12 @@ import net.blacktortoise.android.fragment.ConnectFragment;
 import net.blacktortoise.androidlib.BlackTortoiseFunctions;
 import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
 import net.blacktortoise.androidlib.IBlackTortoiseService;
+import net.blacktortoise.androidlib.IBlackTortoiseServiceListener;
 import net.blacktortoise.androidlib.IDeviceAdapterListener;
+import net.blacktortoise.androidlib.data.BtPacket;
+import net.blacktortoise.androidlib.data.DeviceEventCode;
+import net.blacktortoise.androidlib.data.DeviceInfo;
+import net.blacktortoise.androidlib.data.DeviceState;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -17,15 +22,25 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.os.StrictMode;
 import android.view.Menu;
 import android.view.WindowManager;
 
 public class MainActivity extends Activity implements IBaseFragmentAdapter {
+    private static final int EVENT_ON_DEVICE_STATE_CHANGED = 1;
+
+    private static final int EVENT_ON_RECEIVE_PACKET = 2;
+
+    private MainActivity me = this;
+
     private BlackTortoiseServiceWrapper mServiceWrapper;
 
     private List<IDeviceAdapterListener> mDeviceAdapterListeners;
+
+    private int mServiceListenerSeq = -1;
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
 
@@ -38,7 +53,49 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
         public void onServiceConnected(ComponentName name, IBinder binder) {
             IBlackTortoiseService service = IBlackTortoiseService.Stub.asInterface(binder);
             mServiceWrapper = new BlackTortoiseServiceWrapper(service);
+            if (mServiceListenerSeq < 0) {
+                try {
+                    mServiceListenerSeq = mServiceWrapper.getService().registerServiceListener(
+                            mServiceListener);
+                } catch (RemoteException e) {
+                    // Nothing to do
+                    throw new RuntimeException(e);
+                }
+            }
         }
+    };
+
+    private IBlackTortoiseServiceListener mServiceListener = new IBlackTortoiseServiceListener.Stub() {
+        @Override
+        public void onReceivePacket(BtPacket packet) throws RemoteException {
+            sHandler.obtainMessage(EVENT_ON_RECEIVE_PACKET, new Object[] {
+                    me, packet
+            }).sendToTarget();
+        }
+
+        public void onDeviceStateChanged(final DeviceState state, final DeviceEventCode code,
+                final DeviceInfo deviceInfo) throws RemoteException {
+            sHandler.obtainMessage(EVENT_ON_DEVICE_STATE_CHANGED, new Object[] {
+                    me, state, code, deviceInfo
+            }).sendToTarget();
+        }
+    };
+
+    private static Handler sHandler = new Handler() {
+        public void handleMessage(android.os.Message msg) {
+            Object[] objs = (Object[])msg.obj;
+            MainActivity target = (MainActivity)objs[0];
+            if (msg.what == EVENT_ON_RECEIVE_PACKET) {
+                for (IDeviceAdapterListener listener : target.mDeviceAdapterListeners) {
+                    listener.onReceivePacket((BtPacket)objs[1]);
+                }
+            } else if (msg.what == EVENT_ON_DEVICE_STATE_CHANGED) {
+                for (IDeviceAdapterListener listener : target.mDeviceAdapterListeners) {
+                    listener.onDeviceStateChanged((DeviceState)objs[1], (DeviceEventCode)objs[2],
+                            (DeviceInfo)objs[3]);
+                }
+            }
+        };
     };
 
     @Override
@@ -69,16 +126,25 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         Intent service = BlackTortoiseFunctions.createServiceIntent();
         startService(service);
         bindService(service, mServiceConnection, 0);
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
+        if (mServiceListenerSeq >= 0) {
+            try {
+                mServiceWrapper.getService().unregisterServiceListener(mServiceListenerSeq);
+                mServiceListenerSeq = -1;
+            } catch (RemoteException e) {
+                // Nothing to do
+                throw new RuntimeException(e);
+            }
+        }
         unbindService(mServiceConnection);
     }
 

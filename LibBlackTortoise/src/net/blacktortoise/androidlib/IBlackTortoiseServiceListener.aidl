@@ -9,5 +9,5 @@ import net.blacktortoise.androidlib.data.DeviceInfo;
 oneway interface IBlackTortoiseServiceListener {
     void onDeviceStateChanged(in DeviceState state, in DeviceEventCode code, in DeviceInfo deviceInfo);
 
-    void onReceive(in BtPacket packet);
+    void onReceivePacket(in BtPacket packet);
 }

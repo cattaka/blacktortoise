@@ -16,6 +16,8 @@ public class BtPacketFactory implements IPacketFactory<BtPacket> {
 
     public static final int MAX_DATA_LEN = 1 << 20;
 
+    private static byte[] ZERO_BYTES = new byte[0];
+
     public enum ConState {
         UNKNOWN, STX, PACKET_TYPE, OPC, LEN1, LEN2, CHECKSUM, DATA, ETX
     };
@@ -66,6 +68,7 @@ public class BtPacketFactory implements IPacketFactory<BtPacket> {
                             data = new byte[len];
                             state = ConState.DATA;
                         } else {
+                            data = ZERO_BYTES;
                             state = ConState.ETX;
                         }
                     } else {

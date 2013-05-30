@@ -8,7 +8,9 @@ import net.blacktortoise.androidlib.data.BtPacket;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
 import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceState;
+import net.blacktortoise.androidlib.data.OpCode;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 public class RemoteCameraManager implements ICameraManager, IDeviceAdapterListener {
     private ICameraManagerAdapter mCameraManagerAdapter;
@@ -51,7 +53,7 @@ public class RemoteCameraManager implements ICameraManager, IDeviceAdapterListen
         if (mEnablePreview && !mRequested) {
             BlackTortoiseServiceWrapper wrapper = mBaseFragmentAdapter.getServiceWrapper();
             if (wrapper != null) {
-                mRequested = wrapper.requestCameraImage();
+                mRequested = wrapper.sendRequestCameraImage(0);
             }
         }
     }
@@ -62,16 +64,18 @@ public class RemoteCameraManager implements ICameraManager, IDeviceAdapterListen
     }
 
     @Override
-    public void onReceive(BtPacket packet) {
-        // none
-    }
-
-    @Override
-    public void onReceiveCameraImage(int cameraIdx, Bitmap bitmap) {
-        mCameraManagerAdapter.onPictureTaken(bitmap, this);
-        BlackTortoiseServiceWrapper wrapper = mBaseFragmentAdapter.getServiceWrapper();
-        if (wrapper != null) {
-            mRequested = wrapper.requestCameraImage();
+    public void onReceivePacket(BtPacket packet) {
+        if (packet.getOpCode() == OpCode.CAMERA_IMAGE) {
+            int cameraIdx = packet.getData()[0];
+            Bitmap bitmap = BitmapFactory.decodeByteArray(packet.getData(), 1,
+                    packet.getDataLen() - 1);
+            if (bitmap != null) {
+                mCameraManagerAdapter.onPictureTaken(bitmap, this);
+                BlackTortoiseServiceWrapper wrapper = mBaseFragmentAdapter.getServiceWrapper();
+                if (wrapper != null) {
+                    mRequested = wrapper.sendRequestCameraImage(cameraIdx);
+                }
+            }
         }
     }
 }

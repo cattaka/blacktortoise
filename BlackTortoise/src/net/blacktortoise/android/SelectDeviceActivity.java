@@ -107,7 +107,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
         private ProgressDialog mProgressDialog;
 
         @Override
-        public void onReceive(BtPacket packet) throws RemoteException {
+        public void onReceivePacket(BtPacket packet) throws RemoteException {
             // ignore
         }
 

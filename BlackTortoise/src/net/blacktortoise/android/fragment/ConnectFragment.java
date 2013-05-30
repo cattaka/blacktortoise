@@ -1,52 +1,20 @@
 
 package net.blacktortoise.android.fragment;
 
-import net.blacktortoise.android.BlackTortoiseService;
 import net.blacktortoise.android.R;
 import net.blacktortoise.android.SelectDeviceActivity;
-import net.blacktortoise.androidlib.IBlackTortoiseService;
+import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
+import net.blacktortoise.androidlib.data.DeviceEventCode;
 import net.blacktortoise.androidlib.data.DeviceInfo;
-import android.content.ComponentName;
-import android.content.Context;
+import net.blacktortoise.androidlib.data.DeviceState;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.os.RemoteException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 
 public class ConnectFragment extends BaseFragment implements OnClickListener {
-
-    private IBlackTortoiseService mService;
-
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mService = null;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder binder) {
-            mService = IBlackTortoiseService.Stub.asInterface(binder);
-            final DeviceInfo currentDeviceKey;
-            try {
-                currentDeviceKey = mService.getCurrentDeviceInfo();
-            } catch (RemoteException e) {
-                // Nothing to do
-                throw new RuntimeException(e);
-            }
-            runOnUiThread(new Runnable() {
-                public void run() {
-                    int v = (currentDeviceKey != null) ? View.VISIBLE : View.INVISIBLE;
-                    getView().findViewById(R.id.startButton).setVisibility(v);
-                }
-            });
-        }
-    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -63,14 +31,15 @@ public class ConnectFragment extends BaseFragment implements OnClickListener {
     public void onResume() {
         super.onResume();
 
-        Intent intent = new Intent(getContext(), BlackTortoiseService.class);
-        getContext().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        BlackTortoiseServiceWrapper wrapper = getServiceWrapper();
+        int v = (wrapper != null && wrapper.getCurrentDeviceInfo() != null) ? View.VISIBLE
+                : View.INVISIBLE;
+        getView().findViewById(R.id.startButton).setVisibility(v);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        getContext().unbindService(mServiceConnection);
     }
 
     @Override
@@ -86,5 +55,13 @@ public class ConnectFragment extends BaseFragment implements OnClickListener {
     private void connectToService() {
         MainMenuFragment nextFragment = new MainMenuFragment();
         replacePrimaryFragment(nextFragment, false);
+    }
+
+    @Override
+    public void onDeviceStateChanged(DeviceState state, DeviceEventCode code, DeviceInfo deviceInfo) {
+        super.onDeviceStateChanged(state, code, deviceInfo);
+
+        int v = (state == DeviceState.CONNECTED) ? View.VISIBLE : View.INVISIBLE;
+        getView().findViewById(R.id.startButton).setVisibility(v);
     }
 }

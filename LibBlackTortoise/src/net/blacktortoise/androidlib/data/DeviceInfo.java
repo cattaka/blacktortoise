@@ -42,6 +42,7 @@ public class DeviceInfo implements Parcelable {
     public static DeviceInfo createDummy(boolean supportCamera) {
         DeviceInfo info = new DeviceInfo();
         info.mDeviceType = DeviceType.DUMMY;
+        info.mSupportCamera = supportCamera;
         return info;
     }
 
@@ -49,6 +50,7 @@ public class DeviceInfo implements Parcelable {
         DeviceInfo info = new DeviceInfo();
         info.mDeviceType = DeviceType.USB;
         info.mUsbDeviceKey = devicekey;
+        info.mSupportCamera = supportCamera;
         return info;
     }
 
@@ -57,6 +59,7 @@ public class DeviceInfo implements Parcelable {
         info.mDeviceType = DeviceType.TCP;
         info.mTcpHostName = hostname;
         info.mTcpPort = port;
+        info.mSupportCamera = supportCamera;
         return info;
     }
 

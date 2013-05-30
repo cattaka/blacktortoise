@@ -1,7 +1,6 @@
 
 package net.blacktortoise.androidlib;
 
-import net.blacktortoise.androidlib.IBlackTortoiseService;
 import net.blacktortoise.androidlib.data.BtPacket;
 import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.OpCode;
@@ -15,6 +14,10 @@ public class BlackTortoiseServiceWrapper {
     public BlackTortoiseServiceWrapper(IBlackTortoiseService service) {
         super();
         mService = service;
+    }
+
+    public IBlackTortoiseService getService() {
+        return mService;
     }
 
     public boolean sendMove(float forward, float turn) {
@@ -62,17 +65,19 @@ public class BlackTortoiseServiceWrapper {
         }
     }
 
-    public boolean sendPacket(BtPacket arg0) {
+    public boolean sendRequestCameraImage(int cameraIdx) {
+        mBuffer[0] = (byte)cameraIdx;
+        BtPacket packet = new BtPacket(OpCode.REQUEST_CAMERA_IMAGE, 1, mBuffer);
         try {
-            return mService.sendPacket(arg0);
+            return mService.sendPacket(packet);
         } catch (RemoteException e) {
             return false;
         }
     }
 
-    public boolean requestCameraImage() {
+    public boolean sendPacket(BtPacket arg0) {
         try {
-            return mService.requestCameraImage();
+            return mService.sendPacket(arg0);
         } catch (RemoteException e) {
             return false;
         }

@@ -11,10 +11,5 @@ public interface IDeviceCommandAdapter {
      */
     public boolean sendPacket(BtPacket packet);
 
-    /**
-     * @return If putting to queue is succeed it returns true, otherwise false.
-     */
-    public boolean sendRequestCameraImage();
-
     public boolean isCameraSupported();
 }

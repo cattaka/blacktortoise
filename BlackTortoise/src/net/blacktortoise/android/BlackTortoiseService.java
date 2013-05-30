@@ -25,7 +25,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Handler;
@@ -48,8 +47,6 @@ public class BlackTortoiseService extends Service {
     private static final int EVENT_CONNECT = 3;
 
     private static final int EVENT_DISCONNECT = 4;
-
-    private static final int EVENT_REQUEST_CAMERA_IMAGE = 5;
 
     private static final int EVENT_SEND_PACKET = 6;
 
@@ -90,10 +87,6 @@ public class BlackTortoiseService extends Service {
                 default: {
                     if (mcThread != null) {
                         switch (msg.what) {
-                            case EVENT_REQUEST_CAMERA_IMAGE: {
-                                mcThread.sendRequestCameraImage();
-                                break;
-                            }
                             case EVENT_SEND_PACKET: {
                                 mcThread.sendPacket((BtPacket)objs[1]);
                                 break;
@@ -162,18 +155,6 @@ public class BlackTortoiseService extends Service {
         }
 
         @Override
-        public boolean requestCameraImage() throws RemoteException {
-            if (mDeviceAdapter != null) {
-                sHandler.obtainMessage(EVENT_REQUEST_CAMERA_IMAGE, new Object[] {
-                    me
-                }).sendToTarget();
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        @Override
         public boolean sendPacket(BtPacket packet) throws RemoteException {
             if (mDeviceAdapter != null) {
                 sHandler.obtainMessage(EVENT_SEND_PACKET, new Object[] {
@@ -187,17 +168,12 @@ public class BlackTortoiseService extends Service {
     };
 
     private IDeviceAdapterListener mDeviceAdapterListener = new IDeviceAdapterListener() {
-        @Override
-        public void onReceiveCameraImage(int cameraIdx, Bitmap bitmat) {
-            // Not used.
-        }
-
-        public void onReceive(final BtPacket packet) {
+        public void onReceivePacket(final BtPacket packet) {
             AidlUtil.callMethods(mServiceListeners,
                     new CallFunction<IBlackTortoiseServiceListener>() {
                         public boolean run(IBlackTortoiseServiceListener item)
                                 throws RemoteException {
-                            item.onReceive(packet);
+                            item.onReceivePacket(packet);
                             return true;
                         };
                     });

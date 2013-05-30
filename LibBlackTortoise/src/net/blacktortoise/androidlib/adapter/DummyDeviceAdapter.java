@@ -7,6 +7,7 @@ import net.blacktortoise.androidlib.data.BtPacket;
 import net.blacktortoise.androidlib.data.DeviceEventCode;
 import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.DeviceState;
+import net.blacktortoise.androidlib.data.OpCode;
 import android.os.Handler;
 
 public class DummyDeviceAdapter implements IDeviceAdapter {
@@ -56,11 +57,17 @@ public class DummyDeviceAdapter implements IDeviceAdapter {
 
     @Override
     public boolean sendPacket(BtPacket packet) {
-        return true;
-    }
-
-    @Override
-    public boolean sendRequestCameraImage() {
+        if (packet.getOpCode() == OpCode.ECHO) {
+            byte[] data = new byte[packet.getDataLen()];
+            System.arraycopy(packet.getData(), 0, data, 0, data.length);
+            final BtPacket respPacket = new BtPacket(OpCode.ECHO, data.length, data);
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    mListener.onReceivePacket(respPacket);
+                }
+            });
+        }
         return true;
     }
 

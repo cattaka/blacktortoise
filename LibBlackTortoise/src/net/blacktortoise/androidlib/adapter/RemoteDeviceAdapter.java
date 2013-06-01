@@ -30,9 +30,4 @@ public class RemoteDeviceAdapter extends BtConnectionAdapter {
     public DeviceInfo getDeviceInfo() {
         return DeviceInfo.createTcp(mHostname, mPort, true);
     }
-
-    @Override
-    public boolean isCameraSupported() {
-        return true;
-    }
 }

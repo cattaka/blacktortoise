@@ -10,6 +10,4 @@ public interface IDeviceCommandAdapter {
      * @see ConnectionThread#sendPacket(net.cattaka.libgeppa.data.IPacket)
      */
     public boolean sendPacket(BtPacket packet);
-
-    public boolean isCameraSupported();
 }

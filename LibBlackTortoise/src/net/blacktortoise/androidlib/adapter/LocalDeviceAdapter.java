@@ -33,9 +33,4 @@ public class LocalDeviceAdapter extends BtConnectionAdapter {
     public DeviceInfo getDeviceInfo() {
         return DeviceInfo.createUsb(mUsbDevice.getDeviceName(), false);
     }
-
-    @Override
-    public boolean isCameraSupported() {
-        return false;
-    }
 }

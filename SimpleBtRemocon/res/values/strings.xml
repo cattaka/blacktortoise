@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">SimpleBtRemocon</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="status_no_service">Service is not installed.</string>
+    <string name="status_no_device">Device is not connected.</string>
+
+    <string name="btn_select_device">Select device</string>
+</resources>

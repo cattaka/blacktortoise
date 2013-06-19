@@ -4,7 +4,6 @@ package net.blacktortoise.android.ai;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.blacktortoise.android.ai.R;
 import net.blacktortoise.android.ai.util.ImageUtil;
 import net.blacktortoise.android.ai.util.WorkCaches;
 
@@ -36,7 +35,6 @@ import android.os.Handler;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
-
 
 public class MainActivity extends Activity {
     private static final int EVENT_CAPTURE = 1;
@@ -99,6 +97,13 @@ public class MainActivity extends Activity {
                             mTagDetector = new TagDetector();
                             mCapture = new VideoCapture();
                             mCapture.open(0);
+                            // List<Size> ss =
+                            // mCapture.getSupportedPreviewSizes();
+                            // Size s = ss.get(ss.size() - 4);
+                            // mCapture.set(Highgui.CV_CAP_PROP_FRAME_WIDTH,
+                            // s.width);
+                            // mCapture.set(Highgui.CV_CAP_PROP_FRAME_HEIGHT,
+                            // s.height);
                             sHandler.obtainMessage(EVENT_CAPTURE, MainActivity.this).sendToTarget();
                         }
                     }
@@ -133,12 +138,12 @@ public class MainActivity extends Activity {
         KeyPoint[] queryKeyPoints;
 
         public TagDetector() {
-            detector = FeatureDetector.create(FeatureDetector.ORB);
-            extractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-            matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE);
             // detector = FeatureDetector.create(FeatureDetector.ORB);
             // extractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
             // matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE);
+            detector = FeatureDetector.create(FeatureDetector.BRISK);
+            extractor = DescriptorExtractor.create(DescriptorExtractor.BRISK);
+            matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMINGLUT);
         }
     }
 
@@ -195,8 +200,7 @@ public class MainActivity extends Activity {
                     List<DMatch> good_matches = new ArrayList<DMatch>();
                     for (MatOfDMatch mm : matches) {
                         DMatch[] m = mm.toArray();
-                        if ((m[0].distance < 0.6 * (m[1].distance))
-                                && ((int)m.length <= 2 && (int)m.length > 0)) {
+                        if (m.length >= 2 && (m[0].distance < 0.6 * m[1].distance)) {
                             good_matches.add(m[0]);
                         }
                     }

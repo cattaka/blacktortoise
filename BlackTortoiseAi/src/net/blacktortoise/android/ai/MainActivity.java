@@ -4,6 +4,7 @@ package net.blacktortoise.android.ai;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.blacktortoise.android.ai.tagdetector.TagItem;
 import net.blacktortoise.android.ai.util.ImageUtil;
 import net.blacktortoise.android.ai.util.WorkCaches;
 
@@ -20,11 +21,13 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.features2d.DMatch;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.KeyPoint;
+import org.opencv.highgui.Highgui;
 import org.opencv.highgui.VideoCapture;
 import org.opencv.imgproc.Imgproc;
 
@@ -67,7 +70,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 if (mTagDetector != null) {
-                    mTagDetector.takeMatch = true;
+                    mTagDetector.resetMatch = true;
                 }
             }
         });
@@ -97,13 +100,10 @@ public class MainActivity extends Activity {
                             mTagDetector = new TagDetector();
                             mCapture = new VideoCapture();
                             mCapture.open(0);
-                            // List<Size> ss =
-                            // mCapture.getSupportedPreviewSizes();
-                            // Size s = ss.get(ss.size() - 4);
-                            // mCapture.set(Highgui.CV_CAP_PROP_FRAME_WIDTH,
-                            // s.width);
-                            // mCapture.set(Highgui.CV_CAP_PROP_FRAME_HEIGHT,
-                            // s.height);
+                            List<Size> ss = mCapture.getSupportedPreviewSizes();
+                            Size s = ss.get(ss.size() - 6);
+                            mCapture.set(Highgui.CV_CAP_PROP_FRAME_WIDTH, s.width);
+                            mCapture.set(Highgui.CV_CAP_PROP_FRAME_HEIGHT, s.height);
                             sHandler.obtainMessage(EVENT_CAPTURE, MainActivity.this).sendToTarget();
                         }
                     }
@@ -131,11 +131,11 @@ public class MainActivity extends Activity {
 
         DescriptorMatcher matcher;
 
-        boolean takeMatch = false;
+        boolean resetMatch = false;
 
-        Mat queryDescriptors;
+        int takeMatchNum = 0;
 
-        KeyPoint[] queryKeyPoints;
+        List<TagItem> tagItems = new ArrayList<TagItem>();
 
         public TagDetector() {
             // detector = FeatureDetector.create(FeatureDetector.ORB);
@@ -175,14 +175,22 @@ public class MainActivity extends Activity {
                     mTagDetector.extractor.compute(m4, mokp, descriptors);
                     keypoints = mokp.toArray();
                 }
-                if (mTagDetector.takeMatch) { // Extract keypoints for tag
+                if (mTagDetector.resetMatch) {
+                    mTagDetector.resetMatch = false;
+                    mTagDetector.takeMatchNum = 5;
+                    mTagDetector.tagItems.clear();
+                }
+                if (mTagDetector.takeMatchNum > 0) { // Extract keypoints for
+                                                     // tag
+                    mTagDetector.takeMatchNum--;
                     Mat tmp = m4.submat(rect);
                     MatOfKeyPoint mokp = new MatOfKeyPoint();
-                    mTagDetector.queryDescriptors = new Mat();
+                    Mat queryDescriptors = new Mat();
                     mTagDetector.detector.detect(tmp, mokp);
-                    mTagDetector.extractor.compute(tmp, mokp, mTagDetector.queryDescriptors);
-                    mTagDetector.queryKeyPoints = mokp.toArray();
-                    mTagDetector.takeMatch = false;
+                    mTagDetector.extractor.compute(tmp, mokp, queryDescriptors);
+                    TagItem item = new TagItem(rect.width, rect.height, queryDescriptors,
+                            mokp.toArray());
+                    mTagDetector.tagItems.add(item);
                 }
                 { // Marking keypoints
                     for (KeyPoint kp : keypoints) {
@@ -191,9 +199,9 @@ public class MainActivity extends Activity {
                     }
                 }
 
-                if (mTagDetector.queryDescriptors != null) {
+                for (TagItem item : mTagDetector.tagItems) {
                     List<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
-                    Mat queryDescriptors = mTagDetector.queryDescriptors;
+                    Mat queryDescriptors = item.getQueryDescriptors();
                     Mat trainDescriptors = descriptors;
                     mTagDetector.matcher.knnMatch(queryDescriptors, trainDescriptors, matches, 2);
 
@@ -226,7 +234,7 @@ public class MainActivity extends Activity {
                                 Scalar color = new Scalar(0xFF * m.distance / maxDistance, 0xFF, 0,
                                         0);
                                 Core.circle(m4, kp.pt, 10, color, -1);
-                                src.add(mTagDetector.queryKeyPoints[m.queryIdx].pt);
+                                src.add(item.getQueryKeyPoints()[m.queryIdx].pt);
                                 dst.add(keypoints[m.trainIdx].pt);
                             }
                             srcPoints = new MatOfPoint2f(src.toArray(new Point[src.size()]));

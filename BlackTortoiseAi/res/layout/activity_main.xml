@@ -14,7 +14,7 @@
         android:layout_height="match_parent"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:scaleType="centerInside"
+        android:scaleType="fitCenter"
         android:src="@drawable/ic_launcher" />
 
 </RelativeLayout>

@@ -1,6 +1,9 @@
 
 package net.blacktortoise.android.ai.tagdetector;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.opencv.core.Mat;
 import org.opencv.features2d.KeyPoint;
 
@@ -9,16 +12,15 @@ public class TagItem {
 
     private int height;
 
-    private Mat queryDescriptors;
+    private List<Mat> descriptorsList;
 
-    private KeyPoint[] queryKeyPoints;
+    private List<KeyPoint[]> keyPointsList;
 
-    public TagItem(int width, int height, Mat queryDescriptors, KeyPoint[] queryKeyPoints) {
-        super();
+    public TagItem(int width, int height) {
         this.width = width;
         this.height = height;
-        this.queryDescriptors = queryDescriptors;
-        this.queryKeyPoints = queryKeyPoints;
+        this.descriptorsList = new ArrayList<Mat>();
+        this.keyPointsList = new ArrayList<KeyPoint[]>();
     }
 
     public int getWidth() {
@@ -37,19 +39,20 @@ public class TagItem {
         this.height = height;
     }
 
-    public Mat getQueryDescriptors() {
-        return queryDescriptors;
+    public Mat getDescriptors(int idx) {
+        return descriptorsList.get(idx);
     }
 
-    public void setQueryDescriptors(Mat queryDescriptors) {
-        this.queryDescriptors = queryDescriptors;
+    public KeyPoint[] getKeyPoints(int idx) {
+        return keyPointsList.get(idx);
     }
 
-    public KeyPoint[] getQueryKeyPoints() {
-        return queryKeyPoints;
+    public int getCount() {
+        return descriptorsList.size();
     }
 
-    public void setQueryKeyPoints(KeyPoint[] queryKeyPoints) {
-        this.queryKeyPoints = queryKeyPoints;
+    public void addFrame(Mat mat, KeyPoint[] kps) {
+        descriptorsList.add(mat);
+        keyPointsList.add(kps);
     }
 }

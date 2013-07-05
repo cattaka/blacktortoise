@@ -54,7 +54,6 @@ public class TagDetector {
 
     public void removeTagItem(int key) {
         mTagItems.remove(key);
-        ;
     }
 
     public FeatureDetector getDetector() {
@@ -96,8 +95,11 @@ public class TagDetector {
             }
         }
 
+        dst.clear();
         for (int j = 0; j < mTagItems.size(); j++) {
+            int tagKey = mTagItems.keyAt(j);
             TagItem tagItem = mTagItems.valueAt(j);
+            List<Point[]> goodPts = new ArrayList<Point[]>();
             for (int k = 0; k < tagItem.getCount(); k++) {
                 List<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
                 Mat queryDescriptors = tagItem.getDescriptors(k);
@@ -160,21 +162,92 @@ public class TagDetector {
                     if (dstMop != null) { // Draw line
                         Point[] dstPt = new Point[4];
                         dstPt = dstMop.toArray();
-                        Scalar color = new Scalar(0xFF, 0xFF, 0, 0);
-                        Core.line(resultMat, dstPt[0], dstPt[1], color);
-                        Core.line(resultMat, dstPt[1], dstPt[2], color);
-                        Core.line(resultMat, dstPt[2], dstPt[3], color);
-                        Core.line(resultMat, dstPt[3], dstPt[0], color);
+                        boolean valid = isValid(tagItem.getWidth(), tagItem.getHeight(), dstPt);
+                        if (valid) {
+                            goodPts.add(dstPt);
+                        }
+                        // Scalar color = (valid) ? new Scalar(0xFF, 0xFF, 0, 0)
+                        // : new Scalar(0xFF, 0,
+                        // 0, 0xFF);
+                        // Core.line(resultMat, dstPt[0], dstPt[1], color);
+                        // Core.line(resultMat, dstPt[1], dstPt[2], color);
+                        // Core.line(resultMat, dstPt[2], dstPt[3], color);
+                        // Core.line(resultMat, dstPt[3], dstPt[0], color);
                     }
                     { // Draw good point
-                        for (DMatch m : good_matches) {
-                            KeyPoint kp = keypoints[m.trainIdx];
-                            Scalar color = new Scalar(0xFF * m.distance / maxDistance, 0xFF, 0, 0);
-                            Core.circle(resultMat, kp.pt, 10, color, -1);
-                        }
+                      // for (DMatch m : good_matches) {
+                      // KeyPoint kp = keypoints[m.trainIdx];
+                      // Scalar color = new Scalar(0xFF * m.distance /
+                      // maxDistance, 0xFF, 0, 0);
+                      // Core.circle(resultMat, kp.pt, 10, color, -1);
+                      // }
                     }
                 }
             }
+            if (goodPts.size() > 2) {
+                Point[] pts = new Point[] {
+                        new Point(), new Point(), new Point(), new Point()
+                };
+                calcAverage(pts, goodPts);
+                TagDetectResult result = new TagDetectResult(tagKey, pts);
+                dst.add(result);
+                if (resultMat != null) {
+                    Scalar color = new Scalar(0xFF, 0xFF, 0, 0);
+                    Core.line(resultMat, pts[0], pts[1], color);
+                    Core.line(resultMat, pts[1], pts[2], color);
+                    Core.line(resultMat, pts[2], pts[3], color);
+                    Core.line(resultMat, pts[3], pts[0], color);
+                }
+            }
         }
+    }
+
+    private void calcAverage(Point[] dst, List<Point[]> pts) {
+        dst[0].x = 0;
+        dst[0].y = 0;
+        dst[1].x = 0;
+        dst[1].y = 0;
+        dst[2].x = 0;
+        dst[2].y = 0;
+        dst[3].x = 0;
+        dst[3].y = 0;
+        for (Point[] pt : pts) {
+            dst[0].x += pt[0].x;
+            dst[0].y += pt[0].y;
+            dst[1].x += pt[1].x;
+            dst[1].y += pt[1].y;
+            dst[2].x += pt[2].x;
+            dst[2].y += pt[2].y;
+            dst[3].x += pt[3].x;
+            dst[3].y += pt[3].y;
+        }
+        int n = pts.size();
+        dst[0].x /= n;
+        dst[0].y /= n;
+        dst[1].x /= n;
+        dst[1].y /= n;
+        dst[2].x /= n;
+        dst[2].y /= n;
+        dst[3].x /= n;
+        dst[3].y /= n;
+
+    }
+
+    public boolean isValid(double width, double height, Point[] ps) {
+        double minSquare = width * height * 0.5 * 0.5;
+        double maxSquare = width * height * 1.5 * 1.5;
+
+        double x01 = ps[0].x - ps[1].x;
+        double y01 = ps[0].y - ps[1].y;
+        double x03 = ps[0].x - ps[3].x;
+        double y03 = ps[0].y - ps[3].y;
+        double x21 = ps[2].x - ps[1].x;
+        double y21 = ps[2].y - ps[1].y;
+        double x23 = ps[2].x - ps[3].x;
+        double y23 = ps[2].y - ps[3].y;
+
+        double s = -(x03 * y01 - x01 * y03 + x21 * y23 - x23 * y21) / 2;
+
+        return (minSquare <= s && s <= maxSquare);
     }
 }

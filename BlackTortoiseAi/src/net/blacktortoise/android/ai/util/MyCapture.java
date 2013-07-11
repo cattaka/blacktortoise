@@ -3,7 +3,9 @@ package net.blacktortoise.android.ai.util;
 
 import net.blacktortoise.android.ai.action.IActionUtil;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
 import org.opencv.highgui.VideoCapture;
 import org.opencv.imgproc.Imgproc;
 
@@ -19,6 +21,8 @@ public class MyCapture {
     private VideoCapture mVideoCapture;
 
     private IActionUtil mUtil;
+
+    private boolean mEnableInvert = false;
 
     public MyCapture(IActionUtil util, VideoCapture videoCapture) {
         super();
@@ -48,18 +52,35 @@ public class MyCapture {
             mVideoCapture.retrieve(m1);
             Mat m2 = workCaches.getWorkMat(sM2Seq, m1.width(), m1.height(), m1.type());
             Mat m3 = workCaches.getWorkMat(sM3Seq, m1.width(), m1.height(), m1.type());
+            // Mat m4 = workCaches.getWorkMat(sM3Seq, m1.width(), m1.height(),
+            // m1.type());
             { // Convert and rotate from raw data
               // BGR→RGB
                 Imgproc.cvtColor(m1, m2, Imgproc.COLOR_BGR2RGB);
                 // Imgproc.cvtColor(m1, m2, Imgproc.COLOR_BGR2RGB);
 
-                // rotate2deg
-                ImageUtil.rotate90(m2, m3, dst);
+                if (mEnableInvert) {
+                    // rotate2deg
+                    Core.flip(m2, m3, 0);
+                    Core.transpose(m3, dst);
+                } else {
+                    // rotate2deg
+                    // Core.flip(m2, m3, 0);
+                    Core.transpose(m2, dst);
+                }
             }
             return true;
         } else {
             return false;
         }
 
+    }
+
+    public int getWidth() {
+        return (int)mVideoCapture.get(Highgui.CV_CAP_PROP_FRAME_WIDTH);
+    }
+
+    public int getHeight() {
+        return (int)mVideoCapture.get(Highgui.CV_CAP_PROP_FRAME_HEIGHT);
     }
 }

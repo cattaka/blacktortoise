@@ -1,13 +1,13 @@
 
 package net.blacktortoise.android.ai.action;
 
-public class HeadAction implements IAction<HeadAction.MoveArgs, Void> {
-    public static class MoveArgs {
+public class HeadAction implements IAction<HeadAction.HeadArgs, Void> {
+    public static class HeadArgs {
         public final float yaw;
 
         public final float pitch;
 
-        public MoveArgs(float yaw, float pitch) {
+        public HeadArgs(float yaw, float pitch) {
             super();
             this.yaw = yaw;
             this.pitch = pitch;
@@ -20,7 +20,7 @@ public class HeadAction implements IAction<HeadAction.MoveArgs, Void> {
     }
 
     @Override
-    public Void execute(IActionUtil util, MoveArgs param) {
+    public Void execute(IActionUtil util, HeadArgs param) {
         util.getServiceWrapper().sendHead(param.yaw, param.pitch);
         try {
             Thread.sleep(300);

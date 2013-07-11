@@ -4,6 +4,7 @@ package net.blacktortoise.android.ai.tagdetector;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.blacktortoise.android.ai.util.PointUtil;
 import net.blacktortoise.android.ai.util.WorkCaches;
 
 import org.opencv.calib3d.Calib3d;
@@ -267,19 +268,10 @@ public class TagDetector {
     }
 
     public boolean isValid(double width, double height, Point[] ps) {
-        double minSquare = width * height * 0.5 * 0.5;
-        double maxSquare = width * height * 1.5 * 1.5;
+        double minSquare = 0.25;
+        double maxSquare = 1.5;
 
-        double x01 = ps[0].x - ps[1].x;
-        double y01 = ps[0].y - ps[1].y;
-        double x03 = ps[0].x - ps[3].x;
-        double y03 = ps[0].y - ps[3].y;
-        double x21 = ps[2].x - ps[1].x;
-        double y21 = ps[2].y - ps[1].y;
-        double x23 = ps[2].x - ps[3].x;
-        double y23 = ps[2].y - ps[3].y;
-
-        double s = -(x03 * y01 - x01 * y03 + x21 * y23 - x23 * y21) / 2;
+        double s = PointUtil.getArea(ps);
 
         return (minSquare <= s && s <= maxSquare);
     }

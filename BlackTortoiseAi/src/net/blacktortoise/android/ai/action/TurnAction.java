@@ -21,20 +21,20 @@ public class TurnAction implements IAction<TurnAction.TurnArgs, Void> {
     }
 
     @Override
-    public Void execute(IActionUtil util, TurnArgs param) {
-        if (param.turn > 0) {
-            util.getServiceWrapper().sendMove(param.turn, 1);
-        } else {
-            util.getServiceWrapper().sendMove(param.turn, -1);
-        }
+    public Void execute(IActionUtil util, TurnArgs param) throws InterruptedException {
         try {
+            if (param.turn > 0) {
+                util.getServiceWrapper().sendMove(param.turn, 1);
+            } else {
+                util.getServiceWrapper().sendMove(param.turn, -1);
+            }
+            util.updateConsole();
             Thread.sleep(param.time);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         } finally {
             util.getServiceWrapper().sendMove(0, 0);
         }
 
+        util.updateConsole();
         return null;
     }
 }

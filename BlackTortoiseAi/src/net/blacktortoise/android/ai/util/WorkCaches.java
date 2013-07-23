@@ -12,6 +12,8 @@ public class WorkCaches {
 
     private SparseArray<Bitmap> mWorkBitmaps;
 
+    private int mNextWorkCachesSeq;
+
     public WorkCaches() {
         mWorkMats = new SparseArray<Mat>();
         mWorkBitmaps = new SparseArray<Bitmap>();
@@ -69,4 +71,9 @@ public class WorkCaches {
         }
         mWorkBitmaps.clear();
     }
+
+    public int getNextWorkCachesSeq() {
+        return ++mNextWorkCachesSeq;
+    }
+
 }

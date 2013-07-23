@@ -20,16 +20,16 @@ public class MoveAction implements IAction<MoveAction.MoveArgs, Void> {
     }
 
     @Override
-    public Void execute(IActionUtil util, MoveArgs param) {
-        util.getServiceWrapper().sendMove(param.forward, 0);
+    public Void execute(IActionUtil util, MoveArgs param) throws InterruptedException {
         try {
+            util.getServiceWrapper().sendMove(param.forward, 0);
+            util.updateConsole();
             Thread.sleep(param.time);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         } finally {
             util.getServiceWrapper().sendMove(0, 0);
         }
 
+        util.updateConsole();
         return null;
     }
 }

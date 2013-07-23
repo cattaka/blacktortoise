@@ -271,7 +271,7 @@ public class TagDetector {
         double minSquare = 0.25;
         double maxSquare = 1.5;
 
-        double s = PointUtil.getArea(ps);
+        double s = PointUtil.getArea(ps) / (width * height);
 
         return (minSquare <= s && s <= maxSquare);
     }

@@ -20,4 +20,6 @@ public interface IActionUtil {
     public Mat getResultMat();
 
     public MyCapture getCapture();
+
+    public void updateConsole() throws InterruptedException;
 }

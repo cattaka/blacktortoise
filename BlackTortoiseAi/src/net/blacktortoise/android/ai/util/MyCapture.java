@@ -1,8 +1,6 @@
 
 package net.blacktortoise.android.ai.util;
 
-import net.blacktortoise.android.ai.action.IActionUtil;
-
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
@@ -20,38 +18,38 @@ public class MyCapture {
 
     private VideoCapture mVideoCapture;
 
-    private IActionUtil mUtil;
+    private WorkCaches mWorkCaches;
 
     private boolean mEnableInvert = false;
 
-    public MyCapture(IActionUtil util, VideoCapture videoCapture) {
+    public MyCapture(WorkCaches workCaches, VideoCapture videoCapture) {
         super();
+        mWorkCaches = workCaches;
         mVideoCapture = videoCapture;
-        setup(util);
+        setup(workCaches);
     }
 
-    private void setup(IActionUtil util) {
+    private void setup(WorkCaches workCaches) {
         if (sM1Seq < 0) {
-            sM1Seq = util.getNextWorkCachesSeq();
+            sM1Seq = workCaches.getNextWorkCachesSeq();
         }
         if (sM2Seq < 0) {
-            sM2Seq = util.getNextWorkCachesSeq();
+            sM2Seq = workCaches.getNextWorkCachesSeq();
         }
         if (sM3Seq < 0) {
-            sM3Seq = util.getNextWorkCachesSeq();
+            sM3Seq = workCaches.getNextWorkCachesSeq();
         }
         if (sM4Seq < 0) {
-            sM4Seq = util.getNextWorkCachesSeq();
+            sM4Seq = workCaches.getNextWorkCachesSeq();
         }
     }
 
     public boolean takePicture(Mat dst) {
-        WorkCaches workCaches = mUtil.getWorkCaches();
-        Mat m1 = workCaches.getWorkMat(sM1Seq);
+        Mat m1 = mWorkCaches.getWorkMat(sM1Seq);
         if (mVideoCapture.grab()) {
             mVideoCapture.retrieve(m1);
-            Mat m2 = workCaches.getWorkMat(sM2Seq, m1.width(), m1.height(), m1.type());
-            Mat m3 = workCaches.getWorkMat(sM3Seq, m1.width(), m1.height(), m1.type());
+            Mat m2 = mWorkCaches.getWorkMat(sM2Seq, m1.width(), m1.height(), m1.type());
+            Mat m3 = mWorkCaches.getWorkMat(sM3Seq, m1.width(), m1.height(), m1.type());
             // Mat m4 = workCaches.getWorkMat(sM3Seq, m1.width(), m1.height(),
             // m1.type());
             { // Convert and rotate from raw data
@@ -83,4 +81,9 @@ public class MyCapture {
     public int getHeight() {
         return (int)mVideoCapture.get(Highgui.CV_CAP_PROP_FRAME_HEIGHT);
     }
+
+    public void release() {
+        mVideoCapture.release();
+    }
+
 }

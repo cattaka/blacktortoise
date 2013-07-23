@@ -20,13 +20,10 @@ public class HeadAction implements IAction<HeadAction.HeadArgs, Void> {
     }
 
     @Override
-    public Void execute(IActionUtil util, HeadArgs param) {
+    public Void execute(IActionUtil util, HeadArgs param) throws InterruptedException {
         util.getServiceWrapper().sendHead(param.yaw, param.pitch);
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        util.updateConsole();
+        Thread.sleep(300);
 
         return null;
     }

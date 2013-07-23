@@ -23,7 +23,8 @@ public class DetectAnyTagAction implements IAction<Integer, List<TagDetectResult
     }
 
     @Override
-    public List<TagDetectResult> execute(IActionUtil util, Integer timeout) {
+    public List<TagDetectResult> execute(IActionUtil util, Integer timeout)
+            throws InterruptedException {
         long t = SystemClock.elapsedRealtime();
         WorkCaches workCaches = util.getWorkCaches();
         TagDetector tagDetector = util.getTagDetector();
@@ -41,15 +42,12 @@ public class DetectAnyTagAction implements IAction<Integer, List<TagDetectResult
                     results.clear();
                     tagDetector.detectTags(results, capMat, resultMat);
                 }
+                util.updateConsole();
                 if (results.size() > 0) {
                     break;
                 }
             }
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            Thread.sleep(10);
         } while ((SystemClock.elapsedRealtime() - t) < timeout);
         return results;
     }

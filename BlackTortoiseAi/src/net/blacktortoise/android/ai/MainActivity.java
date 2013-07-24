@@ -15,6 +15,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
         findViewById(R.id.tagTrackerButton).setOnClickListener(this);
         findViewById(R.id.debugButton).setOnClickListener(this);
+        findViewById(R.id.tagManagementButtion).setOnClickListener(this);
     }
 
     @Override
@@ -23,7 +24,10 @@ public class MainActivity extends Activity implements OnClickListener {
             Intent intent = new Intent(this, TagTrackerActivity.class);
             startActivity(intent);
         } else if (v.getId() == R.id.debugButton) {
-            Intent intent = new Intent(this, TagTrackerActivity.class);
+            Intent intent = new Intent(this, DebugActivity.class);
+            startActivity(intent);
+        } else if (v.getId() == R.id.tagManagementButtion) {
+            Intent intent = new Intent(this, TagManagementActivity.class);
             startActivity(intent);
         }
     }

@@ -1,0 +1,21 @@
+<Atmic Action>
+DetectAnyTag<Void,List<TagDetectResult>>
+DetectTag<TagKey,List<TagDetectResult>>
+Move<MoveOption(speed,t), Void>
+Turn<TurnOption(speed,t), Void>
+Head<HeadOption(yaw,pitch), Void>
+
++Listen<Timeout,Action>
++ListenYesNo<Timeout,Boolean>
+
++GetWall<Void, Distance>
+
+
+<Composite Action>
+FollowTag
+    LockAt<TagKey(Integer), Boolean>
+    TrackTag<TrackTagOpt(TagKey,t),TagDetectResult>
+TurnBaseTag<TurnBaseTagOpt(TagKey,angle), Boolean>
+GetWalls<VVoid, Distance[]>
+TurnToFreeWay<MinDistance,Boolean>
+

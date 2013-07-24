@@ -31,7 +31,7 @@ SoftwareSerial g_debug(DEBUG_CONSOLE_RX, DEBUG_CONSOLE_TX);
 #define MOTOR_PIN_NUM     4
 #define MOTOR_LEFT        3
 #define MOTOR_LEFT_REV    5
-#define MOTOR_RIGHT       9
+#define MOTOR_RIGHT       11
 #define MOTOR_RIGHT_REV   6
 // =============================
 

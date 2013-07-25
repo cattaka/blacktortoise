@@ -87,4 +87,18 @@ public class DbHelper extends SQLiteOpenHelper {
         }
         return result;
     }
+
+    public boolean deleteTagItemModel(long id) {
+        boolean result = false;
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.beginTransaction();
+            result = TagItemModelHandler.delete(db, id) > 0;
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+            db.close();
+        }
+        return result;
+    }
 }

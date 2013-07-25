@@ -32,7 +32,7 @@ public class TagItemModel {
     public void updateThumbnail() {
         if (bitmaps != null && bitmaps.size() > 0) {
             Bitmap bt = bitmaps.get(0);
-            thumbnail = Bitmap.createBitmap(72, 72, Bitmap.Config.ARGB_8888);
+            thumbnail = Bitmap.createBitmap(160, 160, Bitmap.Config.ARGB_8888);
             float scale = Math.min((float)thumbnail.getWidth() / (float)bt.getWidth(),
                     (float)thumbnail.getHeight() / (float)bt.getHeight());
             Matrix m = new Matrix();

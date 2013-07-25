@@ -1,8 +1,9 @@
 
-package net.blacktortoise.android.ai;
+package net.blacktortoise.android.ai.view;
 
 import java.util.List;
 
+import net.blacktortoise.android.ai.R;
 import net.blacktortoise.android.ai.model.TagItemModel;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -17,6 +18,8 @@ public class TagItemModelAdapter extends ArrayAdapter<TagItemModel> {
         ImageView thumbnailImage;
 
         TextView nameText;
+
+        TextView labelText;
     }
 
     public TagItemModelAdapter(Context context, List<TagItemModel> objects) {
@@ -33,6 +36,7 @@ public class TagItemModelAdapter extends ArrayAdapter<TagItemModel> {
             vh = new ViewHolder();
             vh.thumbnailImage = (ImageView)convertView.findViewById(R.id.thumbnailImage);
             vh.nameText = (TextView)convertView.findViewById(R.id.nameText);
+            vh.labelText = (TextView)convertView.findViewById(R.id.labelText);
             convertView.setTag(vh);
         } else {
             vh = (ViewHolder)convertView.getTag();
@@ -40,6 +44,7 @@ public class TagItemModelAdapter extends ArrayAdapter<TagItemModel> {
         TagItemModel model = getItem(position);
         vh.thumbnailImage.setImageBitmap(model.getThumbnail());
         vh.nameText.setText(model.getName());
+        vh.labelText.setText(model.getLabel());
 
         return convertView;
     }

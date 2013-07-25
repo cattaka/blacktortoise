@@ -4,9 +4,11 @@ package net.blacktortoise.android.ai.tagdetector;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.blacktortoise.android.ai.model.TagItemModel;
 import net.blacktortoise.android.ai.util.PointUtil;
 import net.blacktortoise.android.ai.util.WorkCaches;
 
+import org.opencv.android.Utils;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -21,9 +23,14 @@ import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.KeyPoint;
 
+import android.graphics.Bitmap;
 import android.util.SparseArray;
 
 public class TagDetector {
+    private static final int CACHE_DESCRIPTORS = 4;
+
+    private static final int CACHE_UPGRADE_TAG = 5;
+
     private SparseArray<TagItem> mTagItems;
 
     private WorkCaches mWorkCaches;
@@ -43,6 +50,18 @@ public class TagDetector {
         mDetector = FeatureDetector.create(FeatureDetector.BRISK);
         mExtractor = DescriptorExtractor.create(DescriptorExtractor.BRISK);
         mMatcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMINGLUT);
+    }
+
+    public boolean createTagItem(TagItemModel model) {
+        if (model.getBitmaps().size() == 0) {
+            return false;
+        }
+        Bitmap bm = model.getBitmaps().get(0);
+        TagItem item = new TagItem(bm.getWidth(), bm.getHeight());
+        for (Bitmap bitmap : model.getBitmaps()) {
+            upgradeTagItem(item, bitmap);
+        }
+        return true;
     }
 
     public void putTagItem(int key, TagItem tagItem) {
@@ -69,6 +88,12 @@ public class TagDetector {
         return mMatcher;
     }
 
+    public void upgradeTagItem(TagItem target, Bitmap src) {
+        Mat tmp = mWorkCaches.getWorkMat(CACHE_UPGRADE_TAG);
+        Utils.bitmapToMat(src, tmp);
+        upgradeTagItem(target, tmp);
+    }
+
     public void upgradeTagItem(TagItem target, Mat src) {
         MatOfKeyPoint mokp = new MatOfKeyPoint();
         Mat queryDescriptors = new Mat();
@@ -79,7 +104,7 @@ public class TagDetector {
 
     public void detectTags(List<TagDetectResult> dst, Mat src, Mat resultMat) {
         KeyPoint[] keypoints;
-        Mat descriptors = mWorkCaches.getWorkMat(4);
+        Mat descriptors = mWorkCaches.getWorkMat(CACHE_DESCRIPTORS);
         { // Detect and Extract keypoints
             MatOfKeyPoint mokp = new MatOfKeyPoint();
             mDetector.detect(src, mokp);
@@ -110,7 +135,7 @@ public class TagDetector {
 
     public TagDetectResult detectTag(Mat src, Mat resultMat, int tagKey) {
         KeyPoint[] keypoints;
-        Mat descriptors = mWorkCaches.getWorkMat(4);
+        Mat descriptors = mWorkCaches.getWorkMat(CACHE_DESCRIPTORS);
         { // Detect and Extract keypoints
             MatOfKeyPoint mokp = new MatOfKeyPoint();
             mDetector.detect(src, mokp);

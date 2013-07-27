@@ -1,8 +1,11 @@
 
 package net.blacktortoise.android.ai.util;
 
+import java.util.List;
+
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.highgui.VideoCapture;
 import org.opencv.imgproc.Imgproc;
@@ -20,13 +23,50 @@ public class MyCapture {
 
     private WorkCaches mWorkCaches;
 
-    private boolean mEnableInvert = false;
+    private boolean mRotateCamera = true;
+
+    private boolean mReverseCamera = false;
+
+    private Size mPreviewSize = new Size(800, 600);
 
     public MyCapture(WorkCaches workCaches, VideoCapture videoCapture) {
         super();
         mWorkCaches = workCaches;
         mVideoCapture = videoCapture;
         setup(workCaches);
+    }
+
+    public void open(boolean rotateCamera, boolean reverceCamera, Size previewSize) {
+        mRotateCamera = rotateCamera;
+        mReverseCamera = reverceCamera;
+        mVideoCapture.open(0);
+        Size size = null;
+        {
+            List<Size> ss = mVideoCapture.getSupportedPreviewSizes();
+            for (Size s : ss) {
+                if (((int)s.width) == ((int)previewSize.width)
+                        && ((int)s.height) == ((int)previewSize.height)) {
+                    size = s;
+                    break;
+                }
+            }
+            if (size == null) {
+                for (int i = ss.size() - 1; i >= 0; i--) {
+                    Size s = ss.get(i);
+                    if (((int)s.width) <= ((int)previewSize.width)
+                            && ((int)s.height) <= ((int)previewSize.height)) {
+                        size = s;
+                        break;
+                    }
+                }
+            }
+        }
+        if (size != null) {
+            mVideoCapture.set(Highgui.CV_CAP_PROP_FRAME_WIDTH, size.width);
+            mVideoCapture.set(Highgui.CV_CAP_PROP_FRAME_HEIGHT, size.height);
+        } else {
+            // use default
+        }
     }
 
     private void setup(WorkCaches workCaches) {
@@ -57,14 +97,25 @@ public class MyCapture {
                 Imgproc.cvtColor(m1, m2, Imgproc.COLOR_BGR2RGB);
                 // Imgproc.cvtColor(m1, m2, Imgproc.COLOR_BGR2RGB);
 
-                if (mEnableInvert) {
-                    // rotate2deg
-                    Core.flip(m2, m3, 0);
-                    Core.transpose(m3, dst);
+                if (mRotateCamera) {
+                    if (mReverseCamera) {
+                        // rotate2deg
+                        // Core.flip(m2, m3, 0);
+                        Core.transpose(m2, dst);
+                    } else {
+                        // rotate2deg
+                        Core.flip(m2, m3, 0);
+                        Core.transpose(m3, dst);
+                    }
                 } else {
-                    // rotate2deg
-                    // Core.flip(m2, m3, 0);
-                    Core.transpose(m2, dst);
+                    if (mReverseCamera) {
+                        // rotate2deg
+                        // Core.flip(m2, m3, 0);
+                        Core.flip(m2, dst, 0);
+                    } else {
+                        // rotate2deg
+                        m2.copyTo(dst);
+                    }
                 }
             }
             return true;

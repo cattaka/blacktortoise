@@ -152,18 +152,21 @@ public class TagDetector {
             mExtractor.compute(src, mokp, descriptors);
             keypoints = mokp.toArray();
         }
-
-        if (resultMat != null) {
-            { // Draw Keypoints
-                Scalar color = new Scalar(0xFF, 0xFF, 0xFF, 0xFF);
-                for (KeyPoint kp : keypoints) {
-                    Core.circle(resultMat, kp.pt, 10, color, 1);
+        if (descriptors.rows() > 0 && descriptors.cols() > 0) {
+            if (resultMat != null) {
+                { // Draw Keypoints
+                    Scalar color = new Scalar(0xFF, 0xFF, 0xFF, 0xFF);
+                    for (KeyPoint kp : keypoints) {
+                        Core.circle(resultMat, kp.pt, 10, color, 1);
+                    }
                 }
             }
-        }
 
-        Mat trainDescriptors = descriptors;
-        return detectTagInner(src, resultMat, tagKey, trainDescriptors, keypoints);
+            Mat trainDescriptors = descriptors;
+            return detectTagInner(src, resultMat, tagKey, trainDescriptors, keypoints);
+        } else {
+            return null;
+        }
     }
 
     public TagDetectResult detectTagInner(Mat src, Mat resultMat, int tagKey, Mat trainDescriptors,

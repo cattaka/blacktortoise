@@ -20,5 +20,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Tag Management" />
+    <Button
+        android:id="@+id/settingButtion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Setting" />
 
 </LinearLayout>

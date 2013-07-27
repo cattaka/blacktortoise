@@ -4,6 +4,7 @@ package net.blacktortoise.android.ai;
 import java.util.List;
 
 import net.blacktortoise.android.ai.action.ConsoleDto;
+import net.blacktortoise.android.ai.core.MyPreferences;
 import net.blacktortoise.android.ai.db.DbHelper;
 import net.blacktortoise.android.ai.model.TagItemModel;
 import net.blacktortoise.android.ai.tagdetector.TagDetector;
@@ -17,13 +18,8 @@ import net.blacktortoise.android.ai.util.WorkCaches;
 import net.blacktortoise.androidlib.BlackTortoiseFunctions;
 import net.blacktortoise.androidlib.IBlackTortoiseService;
 
-import org.opencv.android.InstallCallbackInterface;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
-import org.opencv.core.Size;
-import org.opencv.highgui.Highgui;
 import org.opencv.highgui.VideoCapture;
 
 import android.app.Activity;
@@ -69,7 +65,7 @@ public class DebugActivity extends Activity {
         @Override
         public void onUpdateConsole(ConsoleDto dto) {
             mIndicatorDrawer.drawMove(mMoveBitmap, dto);
-            mIndicatorDrawer.drawMove(mHeadBitmap, dto);
+            mIndicatorDrawer.drawHead(mHeadBitmap, dto);
             mMoveIndicator.setImageBitmap(mMoveBitmap);
             mHeadIndicator.setImageBitmap(mHeadBitmap);
             if (dto.getResultMat() != null) {
@@ -112,36 +108,8 @@ public class DebugActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
-                new LoaderCallbackInterface() {
-                    @Override
-                    public void onPackageInstall(int operation, InstallCallbackInterface callback) {
+        MyPreferences pref = new MyPreferences(this);
 
-                    }
-
-                    @Override
-                    public void onManagerConnected(int status) {
-                        if (status == LoaderCallbackInterface.SUCCESS) {
-                            mTagDetector = new TagDetector();
-                            {
-                                List<TagItemModel> models = mDbHelper.findTagItemModel(false);
-                                for (TagItemModel model : models) {
-                                    TagItemModel fullModel = mDbHelper.findTagItemModelById(model
-                                            .getId());
-                                    mTagDetector.createTagItem(fullModel);
-                                }
-                            }
-                            VideoCapture capture = new VideoCapture();
-                            capture.open(0);
-                            List<Size> ss = capture.getSupportedPreviewSizes();
-                            Size s = ss.get(ss.size() - 6);
-                            capture.set(Highgui.CV_CAP_PROP_FRAME_WIDTH, s.width);
-                            capture.set(Highgui.CV_CAP_PROP_FRAME_HEIGHT, s.height);
-                            mMyCapture = new MyCapture(mWorkCaches, capture);
-                            prepareActionThread();
-                        }
-                    }
-                });
         Intent service = BlackTortoiseFunctions.createServiceIntent();
         bindService(service, mServiceConnection, Context.BIND_AUTO_CREATE);
 
@@ -150,6 +118,21 @@ public class DebugActivity extends Activity {
                 mDbHelper.close();
             }
             mDbHelper = new DbHelper(this);
+        }
+        {
+            mTagDetector = new TagDetector();
+            {
+                List<TagItemModel> models = mDbHelper.findTagItemModel(false);
+                for (TagItemModel model : models) {
+                    TagItemModel fullModel = mDbHelper.findTagItemModelById(model.getId());
+                    mTagDetector.createTagItem(fullModel);
+                }
+            }
+            VideoCapture capture = new VideoCapture();
+            mMyCapture = new MyCapture(mWorkCaches, capture);
+            mMyCapture.open(pref.isRotateCamera(), pref.isReverseCamera(),
+                    pref.getPreviewSizeAsSize());
+            prepareActionThread();
         }
     }
 

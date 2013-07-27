@@ -37,6 +37,9 @@
         <activity
             android:name=".TakeTagActivity"
             android:screenOrientation="portrait" />
-    </application>
+        <activity
+            android:name=".SettingActivity"
+            android:screenOrientation="portrait" />
+     </application>
 
 </manifest>

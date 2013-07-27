@@ -11,9 +11,6 @@ import net.blacktortoise.android.ai.tagdetector.TagItem;
 import net.blacktortoise.android.ai.util.ImageUtil;
 import net.blacktortoise.android.ai.util.WorkCaches;
 
-import org.opencv.android.InstallCallbackInterface;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
@@ -85,28 +82,16 @@ public class TakeTagActivity extends Activity implements OnClickListener {
     protected void onResume() {
         super.onResume();
 
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
-                new LoaderCallbackInterface() {
-                    @Override
-                    public void onPackageInstall(int operation, InstallCallbackInterface callback) {
-
-                    }
-
-                    @Override
-                    public void onManagerConnected(int status) {
-                        if (status == LoaderCallbackInterface.SUCCESS) {
-                            mTagDetector = new TagDetector();
-                            mCapture = new VideoCapture();
-                            mCapture.open(0);
-                            List<Size> ss = mCapture.getSupportedPreviewSizes();
-                            Size s = ss.get(ss.size() - 6);
-                            mCapture.set(Highgui.CV_CAP_PROP_FRAME_WIDTH, s.width);
-                            mCapture.set(Highgui.CV_CAP_PROP_FRAME_HEIGHT, s.height);
-                            sHandler.obtainMessage(EVENT_CAPTURE, TakeTagActivity.this)
-                                    .sendToTarget();
-                        }
-                    }
-                });
+        {
+            mTagDetector = new TagDetector();
+            mCapture = new VideoCapture();
+            mCapture.open(0);
+            List<Size> ss = mCapture.getSupportedPreviewSizes();
+            Size s = ss.get(ss.size() - 6);
+            mCapture.set(Highgui.CV_CAP_PROP_FRAME_WIDTH, s.width);
+            mCapture.set(Highgui.CV_CAP_PROP_FRAME_HEIGHT, s.height);
+            sHandler.obtainMessage(EVENT_CAPTURE, TakeTagActivity.this).sendToTarget();
+        }
     }
 
     @Override

@@ -20,8 +20,9 @@ public class ActionThread extends Thread {
         action.setup(mActionUtil);
 
         try {
+            int targetid = mActionUtil.getTagDetector().getTagItemIdAt(0);
             while (!Thread.interrupted()) {
-                action.execute(mActionUtil, new TrackTagArgs(1, 15000));
+                action.execute(mActionUtil, new TrackTagArgs(targetid, 15000));
             }
         } catch (InterruptedException e) {
             // OK

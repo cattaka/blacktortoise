@@ -58,9 +58,11 @@ public class TagDetector {
         }
         Bitmap bm = model.getBitmaps().get(0);
         TagItem item = new TagItem(bm.getWidth(), bm.getHeight());
+        item.setName(model.getName());
         for (Bitmap bitmap : model.getBitmaps()) {
             upgradeTagItem(item, bitmap);
         }
+        mTagItems.put(model.getId().intValue(), item);
         return true;
     }
 
@@ -70,6 +72,14 @@ public class TagDetector {
 
     public TagItem getTagItem(int key) {
         return mTagItems.get(key);
+    }
+
+    public int getTagItemIdAt(int index) {
+        return mTagItems.keyAt(index);
+    }
+
+    public TagItem getTagItemAt(int index) {
+        return mTagItems.valueAt(index);
     }
 
     public void removeTagItem(int key) {

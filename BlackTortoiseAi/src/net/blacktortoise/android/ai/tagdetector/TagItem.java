@@ -8,6 +8,8 @@ import org.opencv.core.Mat;
 import org.opencv.features2d.KeyPoint;
 
 public class TagItem {
+    private String name;
+
     private int width;
 
     private int height;
@@ -21,6 +23,14 @@ public class TagItem {
         this.height = height;
         this.descriptorsList = new ArrayList<Mat>();
         this.keyPointsList = new ArrayList<KeyPoint[]>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public int getWidth() {

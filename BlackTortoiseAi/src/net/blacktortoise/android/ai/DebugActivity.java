@@ -4,6 +4,8 @@ package net.blacktortoise.android.ai;
 import java.util.List;
 
 import net.blacktortoise.android.ai.action.ConsoleDto;
+import net.blacktortoise.android.ai.db.DbHelper;
+import net.blacktortoise.android.ai.model.TagItemModel;
 import net.blacktortoise.android.ai.tagdetector.TagDetector;
 import net.blacktortoise.android.ai.thread.ActionThread;
 import net.blacktortoise.android.ai.thread.ActionUtil;
@@ -18,6 +20,8 @@ import net.blacktortoise.androidlib.IBlackTortoiseService;
 import org.opencv.android.InstallCallbackInterface;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.highgui.VideoCapture;
@@ -33,6 +37,10 @@ import android.os.IBinder;
 import android.widget.ImageView;
 
 public class DebugActivity extends Activity {
+    private int CACHE_ON_UPDATE_CONSOLE = 1;
+
+    private DbHelper mDbHelper;
+
     private WorkCaches mWorkCaches;
 
     private ImageView mCaptureImageView;
@@ -64,6 +72,13 @@ public class DebugActivity extends Activity {
             mIndicatorDrawer.drawMove(mHeadBitmap, dto);
             mMoveIndicator.setImageBitmap(mMoveBitmap);
             mHeadIndicator.setImageBitmap(mHeadBitmap);
+            if (dto.getResultMat() != null) {
+                Mat m = dto.getResultMat();
+                Bitmap bm = mWorkCaches.getWorkBitmap(CACHE_ON_UPDATE_CONSOLE, m.width(),
+                        m.height());
+                Utils.matToBitmap(m, bm);
+                mCaptureImageView.setImageBitmap(bm);
+            }
         }
     };
 
@@ -108,6 +123,14 @@ public class DebugActivity extends Activity {
                     public void onManagerConnected(int status) {
                         if (status == LoaderCallbackInterface.SUCCESS) {
                             mTagDetector = new TagDetector();
+                            {
+                                List<TagItemModel> models = mDbHelper.findTagItemModel(false);
+                                for (TagItemModel model : models) {
+                                    TagItemModel fullModel = mDbHelper.findTagItemModelById(model
+                                            .getId());
+                                    mTagDetector.createTagItem(fullModel);
+                                }
+                            }
                             VideoCapture capture = new VideoCapture();
                             capture.open(0);
                             List<Size> ss = capture.getSupportedPreviewSizes();
@@ -121,6 +144,13 @@ public class DebugActivity extends Activity {
                 });
         Intent service = BlackTortoiseFunctions.createServiceIntent();
         bindService(service, mServiceConnection, Context.BIND_AUTO_CREATE);
+
+        {
+            if (mDbHelper != null) {
+                mDbHelper.close();
+            }
+            mDbHelper = new DbHelper(this);
+        }
     }
 
     @Override
@@ -152,6 +182,11 @@ public class DebugActivity extends Activity {
         }
 
         mWorkCaches.release();
+        {
+            if (mDbHelper != null) {
+                mDbHelper.close();
+            }
+        }
     }
 
     private void prepareActionThread() {
@@ -159,6 +194,7 @@ public class DebugActivity extends Activity {
             if (mMyCapture != null && mServiceWrapper != null) {
                 mActionUtil = new ActionUtil(mWorkCaches, mMyCapture, mTagDetector,
                         mServiceWrapper, mActionUtilListener);
+                mActionUtil.setResultMat(new Mat());
                 mActionThread = new ActionThread(mActionUtil);
                 mActionThread.start();
             }

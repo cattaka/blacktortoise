@@ -7,10 +7,13 @@ public class HeadAction implements IAction<HeadAction.HeadArgs, Void> {
 
         public final float pitch;
 
-        public HeadArgs(float yaw, float pitch) {
+        public final int sleep;
+
+        public HeadArgs(float yaw, float pitch, int sleep) {
             super();
             this.yaw = yaw;
             this.pitch = pitch;
+            this.sleep = 200;
         }
     }
 
@@ -23,7 +26,7 @@ public class HeadAction implements IAction<HeadAction.HeadArgs, Void> {
     public Void execute(IActionUtil util, HeadArgs param) throws InterruptedException {
         util.getServiceWrapper().sendHead(param.yaw, param.pitch);
         util.updateConsole();
-        Thread.sleep(300);
+        Thread.sleep(param.sleep);
 
         return null;
     }

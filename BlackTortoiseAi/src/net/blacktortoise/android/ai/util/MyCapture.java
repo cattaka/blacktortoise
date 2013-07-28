@@ -107,7 +107,9 @@ public class MyCapture {
                     if (mReverseCamera) {
                         // rotate2deg
                         // Core.flip(m2, m3, 0);
-                        Core.transpose(m2, dst);
+                        Core.flip(m2, m3, 0);
+                        Core.transpose(m3, m2);
+                        Core.flip(m2, dst, 0);
                     } else {
                         // rotate2deg
                         Core.flip(m2, m3, 0);

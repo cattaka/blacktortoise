@@ -79,6 +79,10 @@ public class FollowTagAction implements IAction<FollowTagAction.FollowTagArgs, T
                 break;
             }
             { // do single action
+                final float swingUnit = 0.05f;
+                final int moveSleep = 200;
+                final int turnSleep = 200;
+                final int headSleep = 200;
                 double scale = PointUtil.getAreaScaled(result.getPoints(), tagItem.getWidth(),
                         tagItem.getHeight());
                 PointUtil.getCenterScaled(p, result.getPoints(), width, height);
@@ -88,33 +92,35 @@ public class FollowTagAction implements IAction<FollowTagAction.FollowTagArgs, T
                     TurnArgs turnArgs = null;
                     if (p.x < -0.25) {
                         if (enableTurn && p.x < -0.5) {
-                            turnArgs = new TurnArgs(-1f, 500);
+                            turnArgs = new TurnArgs(-1f, turnSleep);
                         } else {
-                            headArgs = new HeadArgs(wrapper.getLastYaw() - 0.1f,
-                                    wrapper.getLastPitch());
+                            headArgs = new HeadArgs(wrapper.getLastYaw() + swingUnit,
+                                    wrapper.getLastPitch(), headSleep);
                         }
                     } else if (p.x > 0.25) {
                         if (enableTurn && p.x > 0.5) {
-                            turnArgs = new TurnArgs(1f, 500);
+                            turnArgs = new TurnArgs(1f, turnSleep);
                         } else {
-                            headArgs = new HeadArgs(wrapper.getLastYaw() + 0.1f,
-                                    wrapper.getLastPitch());
+                            headArgs = new HeadArgs(wrapper.getLastYaw() - swingUnit,
+                                    wrapper.getLastPitch(), headSleep);
                         }
                     }
 
                     if (p.y < -0.25) {
                         if (headArgs != null) {
-                            headArgs = new HeadArgs(headArgs.yaw, headArgs.pitch - 0.1f);
+                            headArgs = new HeadArgs(headArgs.yaw, headArgs.pitch - swingUnit,
+                                    headSleep);
                         } else {
-                            headArgs = new HeadArgs(wrapper.getLastYaw(),
-                                    wrapper.getLastPitch() - 0.1f);
+                            headArgs = new HeadArgs(wrapper.getLastYaw(), wrapper.getLastPitch()
+                                    - swingUnit, headSleep);
                         }
                     } else if (p.y > 0.25) {
                         if (headArgs != null) {
-                            headArgs = new HeadArgs(headArgs.yaw, headArgs.pitch + 0.1f);
+                            headArgs = new HeadArgs(headArgs.yaw, headArgs.pitch + swingUnit,
+                                    headSleep);
                         } else {
-                            headArgs = new HeadArgs(wrapper.getLastYaw(),
-                                    wrapper.getLastPitch() + 0.1f);
+                            headArgs = new HeadArgs(wrapper.getLastYaw(), wrapper.getLastPitch()
+                                    + swingUnit, headSleep);
                         }
                     }
                     if (headArgs != null) {
@@ -126,10 +132,10 @@ public class FollowTagAction implements IAction<FollowTagAction.FollowTagArgs, T
 
                 if (enableMove) {
                     if (scale < 0.8) {
-                        mMoveAction.execute(util, new MoveArgs(1f, 500));
+                        mMoveAction.execute(util, new MoveArgs(1f, moveSleep));
                         continue;
                     } else if (scale > 1.2) {
-                        mMoveAction.execute(util, new MoveArgs(-1f, 500));
+                        mMoveAction.execute(util, new MoveArgs(-1f, moveSleep));
                         continue;
                     }
                 }

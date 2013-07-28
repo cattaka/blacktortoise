@@ -1,6 +1,8 @@
 
 package net.blacktortoise.android.ai;
 
+import net.blacktortoise.androidlib.BlackTortoiseFunctions;
+
 import org.opencv.android.InstallCallbackInterface;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
@@ -25,6 +27,7 @@ public class MainActivity extends Activity implements OnClickListener {
         findViewById(R.id.debugButton).setOnClickListener(this);
         findViewById(R.id.tagManagementButtion).setOnClickListener(this);
         findViewById(R.id.settingButtion).setOnClickListener(this);
+        findViewById(R.id.selectDeviceButtion).setOnClickListener(this);
 
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Loading OpenCv");
@@ -64,6 +67,9 @@ public class MainActivity extends Activity implements OnClickListener {
         } else if (v.getId() == R.id.settingButtion) {
             Intent intent = new Intent(this, SettingActivity.class);
             startActivity(intent);
+        } else if (v.getId() == R.id.selectDeviceButtion) {
+            Intent intent = BlackTortoiseFunctions.createSelectDeviceActivityIntent();
+            startActivityForResult(intent, -1);
         }
     }
 }

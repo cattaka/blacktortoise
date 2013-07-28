@@ -139,6 +139,7 @@ public class DebugActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        mCaptureImageView.setImageBitmap(null);
         {
             mActionThread.stopSafety();
             mActionThread = null;

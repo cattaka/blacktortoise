@@ -79,38 +79,57 @@ public class FollowTagAction implements IAction<FollowTagAction.FollowTagArgs, T
                 break;
             }
             { // do single action
-                if (enableTurn) {
-                    PointUtil.getCenterScaled(p, result.getPoints(), width, height);
+                double scale = PointUtil.getAreaScaled(result.getPoints(), tagItem.getWidth(),
+                        tagItem.getHeight());
+                PointUtil.getCenterScaled(p, result.getPoints(), width, height);
+
+                {
+                    HeadArgs headArgs = null;
+                    TurnArgs turnArgs = null;
                     if (p.x < -0.25) {
-                        mTurnAction.execute(util, new TurnArgs(-1f, 500));
-                        continue;
+                        if (enableTurn && p.x < -0.5) {
+                            turnArgs = new TurnArgs(-1f, 500);
+                        } else {
+                            headArgs = new HeadArgs(wrapper.getLastYaw() - 0.1f,
+                                    wrapper.getLastPitch());
+                        }
                     } else if (p.x > 0.25) {
-                        mTurnAction.execute(util, new TurnArgs(1f, 500));
-                        continue;
+                        if (enableTurn && p.x > 0.5) {
+                            turnArgs = new TurnArgs(1f, 500);
+                        } else {
+                            headArgs = new HeadArgs(wrapper.getLastYaw() + 0.1f,
+                                    wrapper.getLastPitch());
+                        }
+                    }
+
+                    if (p.y < -0.25) {
+                        if (headArgs != null) {
+                            headArgs = new HeadArgs(headArgs.yaw, headArgs.pitch - 0.1f);
+                        } else {
+                            headArgs = new HeadArgs(wrapper.getLastYaw(),
+                                    wrapper.getLastPitch() - 0.1f);
+                        }
+                    } else if (p.y > 0.25) {
+                        if (headArgs != null) {
+                            headArgs = new HeadArgs(headArgs.yaw, headArgs.pitch + 0.1f);
+                        } else {
+                            headArgs = new HeadArgs(wrapper.getLastYaw(),
+                                    wrapper.getLastPitch() + 0.1f);
+                        }
+                    }
+                    if (headArgs != null) {
+                        mHeadAction.execute(util, headArgs);
+                    } else if (turnArgs != null) {
+                        mTurnAction.execute(util, turnArgs);
                     }
                 }
+
                 if (enableMove) {
-                    double scale = PointUtil.getAreaScaled(result.getPoints(), tagItem.getWidth(),
-                            tagItem.getHeight());
                     if (scale < 0.8) {
                         mMoveAction.execute(util, new MoveArgs(1f, 500));
                         continue;
                     } else if (scale > 1.2) {
                         mMoveAction.execute(util, new MoveArgs(-1f, 500));
-                        continue;
-                    }
-                }
-                {
-                    PointUtil.getCenterScaled(p, result.getPoints(), width, height);
-                    if (p.x < -0.25) {
-                        HeadArgs args = new HeadArgs(wrapper.getLastYaw() - 0.1f,
-                                wrapper.getLastPitch());
-                        mHeadAction.execute(util, args);
-                        continue;
-                    } else if (p.x > 0.25) {
-                        HeadArgs args = new HeadArgs(wrapper.getLastYaw() + 0.1f,
-                                wrapper.getLastPitch());
-                        mHeadAction.execute(util, args);
                         continue;
                     }
                 }

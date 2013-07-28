@@ -19,11 +19,15 @@ public class BlackTortoiseServiceWrapperEx extends BlackTortoiseServiceWrapper {
 
     @Override
     public boolean sendMove(float forward, float turn) {
+        mLastForward = forward;
+        mLastTurn = turn;
         return super.sendMove(forward, turn);
     }
 
     @Override
     public boolean sendHead(float yaw, float pitch) {
+        mLastYaw = yaw;
+        mLastPitch = pitch;
         return super.sendHead(yaw, pitch);
     }
 

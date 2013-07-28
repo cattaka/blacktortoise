@@ -22,7 +22,8 @@ public class TrackTagAction implements IAction<TrackTagAction.TrackTagArgs, TagD
     public void setup(IActionUtil util) {
         mFollowTagAction = new FollowTagAction();
         mFollowTagAction.setup(util);
-        mFollowTagAction.setEnableMove(false);
+        mFollowTagAction.setEnableMove(true);
+        mFollowTagAction.setEnableTurn(true);
         mFollowTagAction.setFinishOnCenter(false);
     }
 

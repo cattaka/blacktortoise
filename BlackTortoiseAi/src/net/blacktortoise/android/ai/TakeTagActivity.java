@@ -4,20 +4,18 @@ package net.blacktortoise.android.ai;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.blacktortoise.android.ai.core.MyPreferences;
 import net.blacktortoise.android.ai.db.DbHelper;
 import net.blacktortoise.android.ai.model.TagItemModel;
 import net.blacktortoise.android.ai.tagdetector.TagDetectResult;
 import net.blacktortoise.android.ai.tagdetector.TagItem;
-import net.blacktortoise.android.ai.util.ImageUtil;
+import net.blacktortoise.android.ai.util.MyCapture;
 import net.blacktortoise.android.ai.util.WorkCaches;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
-import org.opencv.core.Size;
-import org.opencv.highgui.Highgui;
 import org.opencv.highgui.VideoCapture;
-import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -34,9 +32,13 @@ public class TakeTagActivity extends Activity implements OnClickListener {
 
     private WorkCaches mWorkCaches;
 
-    private VideoCapture mCapture;
+    private MyCapture mMyCapture;
 
     private ImageView mCaptureImageView;
+
+    private int mSeqCapMat;
+
+    private int mSeqResultMat;
 
     private List<Bitmap> mBitmaps;
 
@@ -57,6 +59,8 @@ public class TakeTagActivity extends Activity implements OnClickListener {
 
         mBitmaps = new ArrayList<Bitmap>();
         mWorkCaches = new WorkCaches();
+        mSeqCapMat = mWorkCaches.getNextWorkCachesSeq();
+        mSeqResultMat = mWorkCaches.getNextWorkCachesSeq();
 
         mCaptureImageView = (ImageView)findViewById(R.id.captureImageView);
         mCaptureImageView.setOnClickListener(new View.OnClickListener() {
@@ -82,14 +86,13 @@ public class TakeTagActivity extends Activity implements OnClickListener {
     protected void onResume() {
         super.onResume();
 
+        MyPreferences pref = new MyPreferences(this);
         {
             mTagDetector = new TagDetector();
-            mCapture = new VideoCapture();
-            mCapture.open(0);
-            List<Size> ss = mCapture.getSupportedPreviewSizes();
-            Size s = ss.get(ss.size() - 6);
-            mCapture.set(Highgui.CV_CAP_PROP_FRAME_WIDTH, s.width);
-            mCapture.set(Highgui.CV_CAP_PROP_FRAME_HEIGHT, s.height);
+            VideoCapture capture = new VideoCapture();
+            mMyCapture = new MyCapture(mWorkCaches, capture);
+            mMyCapture.open(pref.isRotateCamera(), pref.isReverseCamera(),
+                    pref.getPreviewSizeAsSize());
             sHandler.obtainMessage(EVENT_CAPTURE, TakeTagActivity.this).sendToTarget();
         }
     }
@@ -99,9 +102,9 @@ public class TakeTagActivity extends Activity implements OnClickListener {
         super.onPause();
         mCaptureImageView.setImageBitmap(null);
         mWorkCaches.release();
-        if (mCapture != null) {
-            mCapture.release();
-            mCapture = null;
+        if (mMyCapture != null) {
+            mMyCapture.release();
+            mMyCapture = null;
         }
         sHandler.removeMessages(EVENT_CAPTURE);
     }
@@ -115,20 +118,8 @@ public class TakeTagActivity extends Activity implements OnClickListener {
     }
 
     private void updateCapture() {
-        if (mCapture.grab()) {
-            Mat m1 = mWorkCaches.getWorkMat(0);
-            mCapture.retrieve(m1);
-            Mat m2 = mWorkCaches.getWorkMat(1, m1.width(), m1.height(), m1.type());
-            Mat m3 = mWorkCaches.getWorkMat(2, m1.width(), m1.height(), m1.type());
-            Mat m4 = mWorkCaches.getWorkMat(3, m1.height(), m1.width(), m1.type());
-            { // Convert and rotate from raw data
-              // BGR→RGB
-                Imgproc.cvtColor(m1, m2, Imgproc.COLOR_BGR2RGB);
-                // Imgproc.cvtColor(m1, m2, Imgproc.COLOR_BGR2RGB);
-
-                // rotate2deg
-                ImageUtil.rotate90(m2, m3, m4);
-            }
+        Mat m4 = mWorkCaches.getWorkMat(mSeqCapMat);
+        if (mMyCapture.takePicture(m4)) {
             Rect rect = new Rect((int)(m4.width() / 4f), (int)(m4.height() / 4f), m4.width() / 2,
                     m4.height() / 2);
             if (mTagDetector.resetMatch) {
@@ -155,7 +146,7 @@ public class TakeTagActivity extends Activity implements OnClickListener {
             // ======================
 
             { // Tag detection
-                Mat resultMat = mWorkCaches.getWorkMat(5, m1.height(), m1.width(), m1.type());
+                Mat resultMat = mWorkCaches.getWorkMat(5, m4.height(), m4.width(), m4.type());
                 m4.copyTo(resultMat);
                 Bitmap bm = mWorkCaches.getWorkBitmap(0, m4.cols(), m4.rows());
                 Utils.matToBitmap(m4, bm);

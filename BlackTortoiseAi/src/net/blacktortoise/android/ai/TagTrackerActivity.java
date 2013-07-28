@@ -32,6 +32,8 @@ public class TagTrackerActivity extends Activity {
 
     private ImageView mCaptureImageView;
 
+    private int mSeqCapMat;
+
     private int mSeqResultMat;
 
     private static Handler sHandler = new Handler() {
@@ -50,6 +52,7 @@ public class TagTrackerActivity extends Activity {
         setContentView(R.layout.activity_tag_tracker);
 
         mWorkCaches = new WorkCaches();
+        mSeqCapMat = mWorkCaches.getNextWorkCachesSeq();
         mSeqResultMat = mWorkCaches.getNextWorkCachesSeq();
 
         mCaptureImageView = (ImageView)findViewById(R.id.captureImageView);
@@ -106,7 +109,7 @@ public class TagTrackerActivity extends Activity {
     }
 
     private void updateCapture() {
-        Mat cap = mWorkCaches.getWorkMat(0);
+        Mat cap = mWorkCaches.getWorkMat(mSeqCapMat);
         if (mMyCapture.takePicture(cap)) {
 
             Rect rect = new Rect((int)(cap.width() / 4f), (int)(cap.height() / 4f),

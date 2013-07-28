@@ -27,7 +27,9 @@ public class MyCapture {
 
     private boolean mReverseCamera = false;
 
-    private Size mPreviewSize = new Size(800, 600);
+    private Size mRequestedPreviewSize = new Size(800, 600);
+
+    private Size mPreviewSize;
 
     public MyCapture(WorkCaches workCaches, VideoCapture videoCapture) {
         super();
@@ -36,16 +38,17 @@ public class MyCapture {
         setup(workCaches);
     }
 
-    public void open(boolean rotateCamera, boolean reverceCamera, Size previewSize) {
+    public void open(boolean rotateCamera, boolean reverceCamera, Size requestedPreviewSize) {
         mRotateCamera = rotateCamera;
         mReverseCamera = reverceCamera;
+        mRequestedPreviewSize = requestedPreviewSize;
         mVideoCapture.open(0);
         Size size = null;
         {
             List<Size> ss = mVideoCapture.getSupportedPreviewSizes();
             for (Size s : ss) {
-                if (((int)s.width) == ((int)previewSize.width)
-                        && ((int)s.height) == ((int)previewSize.height)) {
+                if (((int)s.width) == ((int)requestedPreviewSize.width)
+                        && ((int)s.height) == ((int)requestedPreviewSize.height)) {
                     size = s;
                     break;
                 }
@@ -53,8 +56,8 @@ public class MyCapture {
             if (size == null) {
                 for (int i = ss.size() - 1; i >= 0; i--) {
                     Size s = ss.get(i);
-                    if (((int)s.width) <= ((int)previewSize.width)
-                            && ((int)s.height) <= ((int)previewSize.height)) {
+                    if (((int)s.width) <= ((int)requestedPreviewSize.width)
+                            && ((int)s.height) <= ((int)requestedPreviewSize.height)) {
                         size = s;
                         break;
                     }
@@ -64,8 +67,11 @@ public class MyCapture {
         if (size != null) {
             mVideoCapture.set(Highgui.CV_CAP_PROP_FRAME_WIDTH, size.width);
             mVideoCapture.set(Highgui.CV_CAP_PROP_FRAME_HEIGHT, size.height);
+            mPreviewSize = size;
         } else {
             // use default
+            mPreviewSize = new Size(mVideoCapture.get(Highgui.CV_CAP_PROP_FRAME_WIDTH),
+                    mVideoCapture.get(Highgui.CV_CAP_PROP_FRAME_HEIGHT));
         }
     }
 
@@ -126,11 +132,11 @@ public class MyCapture {
     }
 
     public int getWidth() {
-        return (int)mVideoCapture.get(Highgui.CV_CAP_PROP_FRAME_WIDTH);
+        return (int)((mRotateCamera) ? mPreviewSize.height : mPreviewSize.width);
     }
 
     public int getHeight() {
-        return (int)mVideoCapture.get(Highgui.CV_CAP_PROP_FRAME_HEIGHT);
+        return (int)((mRotateCamera) ? mPreviewSize.width : mPreviewSize.height);
     }
 
     public void release() {

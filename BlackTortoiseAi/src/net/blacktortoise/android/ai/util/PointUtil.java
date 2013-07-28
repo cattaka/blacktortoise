@@ -31,8 +31,8 @@ public class PointUtil {
         }
         dst.x /= ps.length;
         dst.y /= ps.length;
-        dst.x = (dst.x / width) * 2 - 1;
-        dst.y = (dst.y / height) * 2 - 1;
+        dst.x = ((dst.x / width) - 0.5) * 2;
+        dst.y = ((dst.y / height) - 0.5) * 2;
     }
 
     public static double getArea(Point[] ps) {

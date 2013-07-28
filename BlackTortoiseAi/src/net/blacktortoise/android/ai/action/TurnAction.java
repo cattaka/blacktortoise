@@ -24,9 +24,9 @@ public class TurnAction implements IAction<TurnAction.TurnArgs, Void> {
     public Void execute(IActionUtil util, TurnArgs param) throws InterruptedException {
         try {
             if (param.turn > 0) {
-                util.getServiceWrapper().sendMove(param.turn, 1);
+                util.getServiceWrapper().sendMove(1, 1);
             } else {
-                util.getServiceWrapper().sendMove(param.turn, -1);
+                util.getServiceWrapper().sendMove(1, -1);
             }
             util.updateConsole();
             Thread.sleep(param.time);

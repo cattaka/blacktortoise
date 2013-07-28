@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.blacktortoise.android.ai.core.MyPreferences;
+import net.blacktortoise.android.ai.core.TagDetectorAlgorism;
 
 import org.opencv.core.Size;
 import org.opencv.highgui.VideoCapture;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -22,6 +24,8 @@ public class SettingActivity extends Activity {
 
     private Spinner mPreviewSizeView;
 
+    private Spinner mTagDetectorAlgorismView;
+
     private MyPreferences mPreferences;
 
     @Override
@@ -32,6 +36,7 @@ public class SettingActivity extends Activity {
         mRotateCameraView = (Switch)findViewById(R.id.rotateCameraSwitch);
         mReverseCameraView = (Switch)findViewById(R.id.reverseCameraSwitch);
         mPreviewSizeView = (Spinner)findViewById(R.id.previewSizeSpinner);
+        mTagDetectorAlgorismView = (Spinner)findViewById(R.id.tagDetectorAlgorismSpinner);
     }
 
     @Override
@@ -54,18 +59,27 @@ public class SettingActivity extends Activity {
                     android.R.layout.simple_list_item_1, sizeStrs);
             mPreviewSizeView.setAdapter(adapter);
         }
+        {
+            ArrayAdapter<TagDetectorAlgorism> adapter = new ArrayAdapter<TagDetectorAlgorism>(this,
+                    android.R.layout.simple_list_item_1, TagDetectorAlgorism.values());
+            mTagDetectorAlgorismView.setAdapter(adapter);
+        }
 
         {
             mPreferences = new MyPreferences(this);
             mRotateCameraView.setChecked(mPreferences.isRotateCamera());
             mReverseCameraView.setChecked(mPreferences.isReverseCamera());
-            String ps = mPreferences.getPreviewSize();
-            if (ps != null) {
-                for (int i = 0; i < mPreviewSizeView.getCount(); i++) {
-                    if (ps.equals(mPreviewSizeView.getItemAtPosition(i))) {
-                        mPreviewSizeView.setSelection(i);
-                        break;
-                    }
+            setSelection(mPreviewSizeView, mPreferences.getPreviewSize());
+            setSelection(mTagDetectorAlgorismView, mPreferences.getTagDetectorAlgorism());
+        }
+    }
+
+    public void setSelection(AdapterView<?> view, Object obj) {
+        if (obj != null) {
+            for (int i = 0; i < view.getCount(); i++) {
+                if (obj.equals(view.getItemAtPosition(i))) {
+                    view.setSelection(i);
+                    break;
                 }
             }
         }
@@ -78,6 +92,8 @@ public class SettingActivity extends Activity {
         mPreferences.putRotateCamera(mRotateCameraView.isChecked());
         mPreferences.putReverseCamera(mReverseCameraView.isChecked());
         mPreferences.putPreviewSize(String.valueOf(mPreviewSizeView.getSelectedItem()));
+        mPreferences.putTagDetectorAlgorism((TagDetectorAlgorism)mTagDetectorAlgorismView
+                .getSelectedItem());
         mPreferences.commit();
         mPreferences = null;
     }

@@ -1,5 +1,5 @@
 
-package net.blacktortoise.android.ai.util;
+package net.blacktortoise.android.ai.core;
 
 import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
 import net.blacktortoise.androidlib.IBlackTortoiseService;

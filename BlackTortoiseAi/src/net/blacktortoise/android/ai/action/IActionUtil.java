@@ -1,8 +1,8 @@
 
 package net.blacktortoise.android.ai.action;
 
+import net.blacktortoise.android.ai.core.BlackTortoiseServiceWrapperEx;
 import net.blacktortoise.android.ai.tagdetector.TagDetector;
-import net.blacktortoise.android.ai.util.BlackTortoiseServiceWrapperEx;
 import net.blacktortoise.android.ai.util.MyCapture;
 import net.blacktortoise.android.ai.util.WorkCaches;
 

@@ -14,6 +14,8 @@ public class MyPreferences {
 
     private String KEY_PREVIEW_SIZE = "PreviewSize";
 
+    private String KEY_TAG_DETECTOR_ALGORISM = "TagDetectorAlgorism";
+
     private SharedPreferences mPreferences;
 
     private SharedPreferences.Editor mEditor;
@@ -76,4 +78,20 @@ public class MyPreferences {
         mEditor.putString(KEY_PREVIEW_SIZE, previewSize);
     }
 
+    public TagDetectorAlgorism getTagDetectorAlgorism() {
+        String str = mPreferences.getString(KEY_TAG_DETECTOR_ALGORISM, null);
+        if (str == null) {
+            return TagDetectorAlgorism.DEFAULT;
+        }
+        try {
+            return TagDetectorAlgorism.valueOf(str);
+        } catch (IllegalArgumentException e) {
+            return TagDetectorAlgorism.DEFAULT;
+        }
+
+    }
+
+    public void putTagDetectorAlgorism(TagDetectorAlgorism tagDetectorAlgorism) {
+        mEditor.putString(KEY_TAG_DETECTOR_ALGORISM, String.valueOf(tagDetectorAlgorism));
+    }
 }

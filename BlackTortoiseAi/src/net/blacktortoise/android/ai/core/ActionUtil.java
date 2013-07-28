@@ -1,12 +1,11 @@
 
-package net.blacktortoise.android.ai.thread;
+package net.blacktortoise.android.ai.core;
 
 import java.util.concurrent.Semaphore;
 
 import net.blacktortoise.android.ai.action.ConsoleDto;
 import net.blacktortoise.android.ai.action.IActionUtil;
 import net.blacktortoise.android.ai.tagdetector.TagDetector;
-import net.blacktortoise.android.ai.util.BlackTortoiseServiceWrapperEx;
 import net.blacktortoise.android.ai.util.MyCapture;
 import net.blacktortoise.android.ai.util.WorkCaches;
 

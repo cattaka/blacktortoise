@@ -8,6 +8,7 @@ import net.blacktortoise.android.ai.core.MyPreferences;
 import net.blacktortoise.android.ai.db.DbHelper;
 import net.blacktortoise.android.ai.model.TagItemModel;
 import net.blacktortoise.android.ai.tagdetector.TagDetectResult;
+import net.blacktortoise.android.ai.tagdetector.TagDetector;
 import net.blacktortoise.android.ai.tagdetector.TagItem;
 import net.blacktortoise.android.ai.util.MyCapture;
 import net.blacktortoise.android.ai.util.WorkCaches;
@@ -66,9 +67,7 @@ public class TakeTagActivity extends Activity implements OnClickListener {
         mCaptureImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mTagDetector != null) {
-                    mTagDetector.resetMatch = true;
-                }
+                mTagTaker.resetMatch = true;
             }
         });
 
@@ -88,7 +87,7 @@ public class TakeTagActivity extends Activity implements OnClickListener {
 
         MyPreferences pref = new MyPreferences(this);
         {
-            mTagDetector = new TagDetector();
+            mTagDetector = pref.getTagDetectorAlgorism().createTagDetector();
             VideoCapture capture = new VideoCapture();
             mMyCapture = new MyCapture(mWorkCaches, capture);
             mMyCapture.open(pref.isRotateCamera(), pref.isReverseCamera(),
@@ -111,7 +110,9 @@ public class TakeTagActivity extends Activity implements OnClickListener {
 
     private TagDetector mTagDetector;
 
-    private class TagDetector extends net.blacktortoise.android.ai.tagdetector.TagDetector {
+    private TagTaker mTagTaker = new TagTaker();
+
+    private class TagTaker {
         boolean resetMatch = false;
 
         int takeMatchNum = 0;
@@ -122,17 +123,17 @@ public class TakeTagActivity extends Activity implements OnClickListener {
         if (mMyCapture.takePicture(m4)) {
             Rect rect = new Rect((int)(m4.width() / 4f), (int)(m4.height() / 4f), m4.width() / 2,
                     m4.height() / 2);
-            if (mTagDetector.resetMatch) {
-                mTagDetector.resetMatch = false;
-                mTagDetector.takeMatchNum = 5;
+            if (mTagTaker.resetMatch) {
+                mTagTaker.resetMatch = false;
+                mTagTaker.takeMatchNum = 5;
                 mTagDetector.removeTagItem(0);
                 TagItem tagItem = new TagItem(rect.width, rect.height);
                 mTagDetector.putTagItem(0, tagItem);
                 mBitmaps.clear();
             }
-            if (mTagDetector.takeMatchNum > 0) { // Extract keypoints for
-                                                 // tag
-                mTagDetector.takeMatchNum--;
+            if (mTagTaker.takeMatchNum > 0) { // Extract keypoints for
+                                              // tag
+                mTagTaker.takeMatchNum--;
                 Mat tmp = m4.submat(rect);
                 mTagDetector.upgradeTagItem(mTagDetector.getTagItem(0), tmp);
                 {

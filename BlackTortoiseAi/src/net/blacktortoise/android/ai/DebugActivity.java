@@ -4,14 +4,14 @@ package net.blacktortoise.android.ai;
 import java.util.List;
 
 import net.blacktortoise.android.ai.action.ConsoleDto;
+import net.blacktortoise.android.ai.core.ActionUtil;
+import net.blacktortoise.android.ai.core.ActionUtil.IActionUtilListener;
+import net.blacktortoise.android.ai.core.BlackTortoiseServiceWrapperEx;
 import net.blacktortoise.android.ai.core.MyPreferences;
 import net.blacktortoise.android.ai.db.DbHelper;
 import net.blacktortoise.android.ai.model.TagItemModel;
 import net.blacktortoise.android.ai.tagdetector.TagDetector;
 import net.blacktortoise.android.ai.thread.ActionThread;
-import net.blacktortoise.android.ai.thread.ActionUtil;
-import net.blacktortoise.android.ai.thread.ActionUtil.IActionUtilListener;
-import net.blacktortoise.android.ai.util.BlackTortoiseServiceWrapperEx;
 import net.blacktortoise.android.ai.util.IndicatorDrawer;
 import net.blacktortoise.android.ai.util.MyCapture;
 import net.blacktortoise.android.ai.util.WorkCaches;
@@ -120,7 +120,7 @@ public class DebugActivity extends Activity {
             mDbHelper = new DbHelper(this);
         }
         {
-            mTagDetector = new TagDetector();
+            mTagDetector = pref.getTagDetectorAlgorism().createTagDetector();
             {
                 List<TagItemModel> models = mDbHelper.findTagItemModel(false);
                 for (TagItemModel model : models) {

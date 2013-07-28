@@ -41,15 +41,17 @@ public class TagDetector {
 
     private DescriptorMatcher mMatcher;
 
-    public TagDetector() {
+    private TagDetector() {
         mTagItems = new SparseArray<TagItem>();
         mWorkCaches = new WorkCaches();
-        // detector = FeatureDetector.create(FeatureDetector.ORB);
-        // extractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-        // matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE);
-        mDetector = FeatureDetector.create(FeatureDetector.BRISK);
-        mExtractor = DescriptorExtractor.create(DescriptorExtractor.BRISK);
-        mMatcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMINGLUT);
+    }
+
+    public TagDetector(FeatureDetector detector, DescriptorExtractor extractor,
+            DescriptorMatcher matcher) {
+        this();
+        mDetector = detector;
+        mExtractor = extractor;
+        mMatcher = matcher;
     }
 
     public boolean createTagItem(TagItemModel model) {

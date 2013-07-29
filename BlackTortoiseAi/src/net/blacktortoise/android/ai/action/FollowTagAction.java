@@ -80,8 +80,8 @@ public class FollowTagAction implements IAction<FollowTagAction.FollowTagArgs, T
             }
             { // do single action
                 final float swingUnit = 0.05f;
-                final int moveSleep = 200;
-                final int turnSleep = 200;
+                final int moveSleep = 100;
+                final int turnSleep = 100;
                 final int headSleep = 200;
                 double scale = PointUtil.getAreaScaled(result.getPoints(), tagItem.getWidth(),
                         tagItem.getHeight());
@@ -108,19 +108,19 @@ public class FollowTagAction implements IAction<FollowTagAction.FollowTagArgs, T
 
                     if (p.y < -0.25) {
                         if (headArgs != null) {
-                            headArgs = new HeadArgs(headArgs.yaw, headArgs.pitch - swingUnit,
-                                    headSleep);
-                        } else {
-                            headArgs = new HeadArgs(wrapper.getLastYaw(), wrapper.getLastPitch()
-                                    - swingUnit, headSleep);
-                        }
-                    } else if (p.y > 0.25) {
-                        if (headArgs != null) {
                             headArgs = new HeadArgs(headArgs.yaw, headArgs.pitch + swingUnit,
                                     headSleep);
                         } else {
                             headArgs = new HeadArgs(wrapper.getLastYaw(), wrapper.getLastPitch()
                                     + swingUnit, headSleep);
+                        }
+                    } else if (p.y > 0.25) {
+                        if (headArgs != null) {
+                            headArgs = new HeadArgs(headArgs.yaw, headArgs.pitch - swingUnit,
+                                    headSleep);
+                        } else {
+                            headArgs = new HeadArgs(wrapper.getLastYaw(), wrapper.getLastPitch()
+                                    - swingUnit, headSleep);
                         }
                     }
                     if (headArgs != null) {

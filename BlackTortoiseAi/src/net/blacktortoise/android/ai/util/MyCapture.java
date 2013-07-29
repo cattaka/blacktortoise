@@ -73,6 +73,8 @@ public class MyCapture {
             mPreviewSize = new Size(mVideoCapture.get(Highgui.CV_CAP_PROP_FRAME_WIDTH),
                     mVideoCapture.get(Highgui.CV_CAP_PROP_FRAME_HEIGHT));
         }
+        mVideoCapture.set(Highgui.CV_CAP_PROP_ANDROID_FOCUS_MODE,
+                Highgui.CV_CAP_ANDROID_FOCUS_MODE_AUTO);
     }
 
     private void setup(WorkCaches workCaches) {

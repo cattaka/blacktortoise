@@ -183,9 +183,20 @@ public class TagDetector {
 
             List<DMatch> good_matches = new ArrayList<DMatch>();
             for (MatOfDMatch mm : matches) {
-                DMatch[] m = mm.toArray();
-                if (m.length >= 2 && (m[0].distance < 0.6 * m[1].distance)) {
-                    good_matches.add(m[0]);
+                // DMatch[] m = mm.toArray();
+                int cn = mm.channels();
+                int num = (int)mm.total();
+                DMatch[] m = new DMatch[num];
+                if (num >= 2) {
+                    float buff[] = new float[num * cn];
+                    mm.get(0, 0, buff); // TODO: check ret val!
+                    for (int i = 0; i < num; i++)
+                        m[i] = new DMatch((int)buff[cn * i + 0], (int)buff[cn * i + 1],
+                                (int)buff[cn * i + 2], buff[cn * i + 3]);
+
+                    if (m[0].distance < 0.6 * m[1].distance) {
+                        good_matches.add(m[0]);
+                    }
                 }
             }
             MatOfPoint2f dstMop = null;
@@ -193,9 +204,18 @@ public class TagDetector {
             if (good_matches.size() >= 4) {
                 { // calculate maxDistance
                     for (MatOfDMatch mm : matches) {
-                        for (DMatch m : mm.toArray()) {
-                            if (maxDistance < m.distance) {
-                                maxDistance = m.distance;
+                        // DMatch[] m = mm.toArray();
+                        int cn = mm.channels();
+                        int num = (int)mm.total();
+                        if (num > 0) {
+                            float buff[] = new float[num * cn];
+                            mm.get(0, 0, buff); // TODO: check ret val!
+                            for (int i = 0; i < num; i++) {
+                                DMatch m = new DMatch((int)buff[cn * i + 0], (int)buff[cn * i + 1],
+                                        (int)buff[cn * i + 2], buff[cn * i + 3]);
+                                if (maxDistance < m.distance) {
+                                    maxDistance = m.distance;
+                                }
                             }
                         }
                     }

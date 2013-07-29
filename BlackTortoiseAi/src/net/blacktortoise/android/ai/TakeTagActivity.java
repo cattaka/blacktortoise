@@ -14,8 +14,11 @@ import net.blacktortoise.android.ai.util.MyCapture;
 import net.blacktortoise.android.ai.util.WorkCaches;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.highgui.VideoCapture;
 
 import android.app.Activity;
@@ -149,6 +152,10 @@ public class TakeTagActivity extends Activity implements OnClickListener {
             { // Tag detection
                 Mat resultMat = mWorkCaches.getWorkMat(5, m4.height(), m4.width(), m4.type());
                 m4.copyTo(resultMat);
+                {
+                    Core.rectangle(m4, new Point(rect.x, rect.y), new Point(rect.x + rect.width,
+                            rect.y + rect.height), new Scalar(1, 1, 1, 1));
+                }
                 Bitmap bm = mWorkCaches.getWorkBitmap(0, m4.cols(), m4.rows());
                 Utils.matToBitmap(m4, bm);
                 List<TagDetectResult> results = new ArrayList<TagDetectResult>();

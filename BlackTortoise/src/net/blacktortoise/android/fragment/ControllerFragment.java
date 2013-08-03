@@ -61,6 +61,10 @@ public class ControllerFragment extends BaseFragment implements OnClickListener 
                 if (t - lastSendMoveTime > 100 || event.getActionMasked() == MotionEvent.ACTION_UP) {
                     float forward = -(ry * 2 - 1);
                     float turn = rx * 2 - 1;
+                    if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                        forward = 0;
+                        turn = 0;
+                    }
                     { // Displayes values on TextView
                         String text = String.format(Locale.getDefault(),
                                 "(forward,turn)=(%.2f,%.2f)", forward, turn);

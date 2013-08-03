@@ -16,9 +16,11 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 
-public class TagManagementActivity extends Activity implements OnClickListener, OnItemClickListener {
+public class TagManagementActivity extends Activity implements OnClickListener,
+        OnItemClickListener, OnItemLongClickListener {
     private ListView mTagItemModelList;
 
     private DbHelper mDbHelper;
@@ -59,6 +61,7 @@ public class TagManagementActivity extends Activity implements OnClickListener, 
 
         mTagItemModelList = (ListView)findViewById(R.id.tagItemModelList);
         mTagItemModelList.setOnItemClickListener(this);
+        mTagItemModelList.setOnItemLongClickListener(this);
     }
 
     @Override
@@ -93,8 +96,21 @@ public class TagManagementActivity extends Activity implements OnClickListener, 
     public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
         if (parent.getId() == R.id.tagItemModelList) {
             TagItemModel srcModel = (TagItemModel)parent.getAdapter().getItem(position);
+            Intent intent = new Intent(this, TagDetailActivity.class);
+            intent.putExtra(TagDetailActivity.EXTRA_TAG_ITEM_MODEL_ID, srcModel.getId().intValue());
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
+        if (parent.getId() == R.id.tagItemModelList) {
+            TagItemModel srcModel = (TagItemModel)parent.getAdapter().getItem(position);
             TagItemModel model = mDbHelper.findTagItemModelById(srcModel.getId());
             mEditTagItemModelDialog.show(model);
+            return true;
+        } else {
+            return false;
         }
     }
 

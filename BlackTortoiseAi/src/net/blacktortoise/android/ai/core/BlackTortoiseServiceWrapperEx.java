@@ -26,11 +26,13 @@ public class BlackTortoiseServiceWrapperEx extends BlackTortoiseServiceWrapper {
 
     @Override
     public boolean sendHead(float yaw, float pitch) {
+        yaw = Math.min(1f, Math.max(-1f, yaw));
+        pitch = Math.min(1f, Math.max(-1f, pitch));
 
         mLastYaw = yaw;
         mLastPitch = pitch;
-        yaw = Math.min(0.3f, Math.max(-0.3f, yaw));
-        pitch = Math.min(0.3f, Math.max(-0.3f, pitch));
+        // yaw = Math.min(0.3f, Math.max(-0.3f, yaw));
+        // pitch = Math.min(0.3f, Math.max(-0.3f, pitch));
         return super.sendHead((yaw + 1) / 2, (pitch + 1) / 2);
     }
 

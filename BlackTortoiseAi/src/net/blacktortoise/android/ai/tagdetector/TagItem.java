@@ -8,21 +8,36 @@ import org.opencv.core.Mat;
 import org.opencv.features2d.KeyPoint;
 
 public class TagItem {
+    public static class TagItemFrame {
+        public final int width;
+
+        public final int height;
+
+        public final Mat descriptors;
+
+        public final KeyPoint[] keyPoints;
+
+        public TagItemFrame(int width, int height, Mat descriptors, KeyPoint[] keyPoints) {
+            super();
+            this.width = width;
+            this.height = height;
+            this.descriptors = descriptors;
+            this.keyPoints = keyPoints;
+        }
+    }
+
     private String name;
 
     private int width;
 
     private int height;
 
-    private List<Mat> descriptorsList;
-
-    private List<KeyPoint[]> keyPointsList;
+    public List<TagItemFrame> mElements;
 
     public TagItem(int width, int height) {
         this.width = width;
         this.height = height;
-        this.descriptorsList = new ArrayList<Mat>();
-        this.keyPointsList = new ArrayList<KeyPoint[]>();
+        this.mElements = new ArrayList<TagItem.TagItemFrame>();
     }
 
     public String getName() {
@@ -49,20 +64,12 @@ public class TagItem {
         this.height = height;
     }
 
-    public Mat getDescriptors(int idx) {
-        return descriptorsList.get(idx);
+    public List<TagItemFrame> getFrames() {
+        return mElements;
     }
 
-    public KeyPoint[] getKeyPoints(int idx) {
-        return keyPointsList.get(idx);
+    public void setFrames(List<TagItemFrame> elements) {
+        mElements = elements;
     }
 
-    public int getCount() {
-        return descriptorsList.size();
-    }
-
-    public void addFrame(Mat mat, KeyPoint[] kps) {
-        descriptorsList.add(mat);
-        keyPointsList.add(kps);
-    }
 }

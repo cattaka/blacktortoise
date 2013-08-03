@@ -79,10 +79,10 @@ public class FollowTagAction implements IAction<FollowTagAction.FollowTagArgs, T
                 break;
             }
             { // do single action
-                final float swingUnit = 0.05f;
-                final int moveSleep = 100;
-                final int turnSleep = 100;
-                final int headSleep = 200;
+                final float swingUnit = 0.075f;
+                final int moveSleep = 200;
+                final int turnSleep = 200;
+                final int headSleep = 50;
                 double scale = PointUtil.getAreaScaled(result.getPoints(), tagItem.getWidth(),
                         tagItem.getHeight());
                 PointUtil.getCenterScaled(p, result.getPoints(), width, height);
@@ -91,20 +91,35 @@ public class FollowTagAction implements IAction<FollowTagAction.FollowTagArgs, T
                     HeadArgs headArgs = null;
                     TurnArgs turnArgs = null;
                     if (p.x < -0.25) {
-                        if (enableTurn && p.x < -0.5) {
+                        if (enableTurn && wrapper.getLastYaw() > 0.8) {
                             turnArgs = new TurnArgs(-1f, turnSleep);
                         } else {
                             headArgs = new HeadArgs(wrapper.getLastYaw() + swingUnit,
                                     wrapper.getLastPitch(), headSleep);
                         }
                     } else if (p.x > 0.25) {
-                        if (enableTurn && p.x > 0.5) {
+                        if (enableTurn && wrapper.getLastYaw() < -0.8) {
                             turnArgs = new TurnArgs(1f, turnSleep);
                         } else {
                             headArgs = new HeadArgs(wrapper.getLastYaw() - swingUnit,
                                     wrapper.getLastPitch(), headSleep);
                         }
                     }
+                    // if (p.x < -0.25) {
+                    // if (enableTurn && p.x < -0.5) {
+                    // turnArgs = new TurnArgs(-1f, turnSleep);
+                    // } else {
+                    // headArgs = new HeadArgs(wrapper.getLastYaw() + swingUnit,
+                    // wrapper.getLastPitch(), headSleep);
+                    // }
+                    // } else if (p.x > 0.25) {
+                    // if (enableTurn && p.x > 0.5) {
+                    // turnArgs = new TurnArgs(1f, turnSleep);
+                    // } else {
+                    // headArgs = new HeadArgs(wrapper.getLastYaw() - swingUnit,
+                    // wrapper.getLastPitch(), headSleep);
+                    // }
+                    // }
 
                     if (p.y < -0.25) {
                         if (headArgs != null) {

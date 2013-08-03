@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.blacktortoise.android.ai.model.TagItemModel;
+import net.blacktortoise.android.ai.tagdetector.TagItem.TagItemFrame;
 import net.blacktortoise.android.ai.util.PointUtil;
 import net.blacktortoise.android.ai.util.WorkCaches;
 
@@ -111,7 +112,9 @@ public class TagDetector {
         Mat queryDescriptors = new Mat();
         mDetector.detect(src, mokp);
         mExtractor.compute(src, mokp, queryDescriptors);
-        target.addFrame(queryDescriptors, mokp.toArray());
+
+        target.getFrames().add(
+                new TagItemFrame(src.width(), src.height(), queryDescriptors, mokp.toArray()));
     }
 
     public void detectTags(List<TagDetectResult> dst, Mat src, Mat resultMat) {
@@ -175,10 +178,10 @@ public class TagDetector {
             KeyPoint[] keypoints) {
         TagItem tagItem = mTagItems.get(tagKey);
         List<Point[]> goodPts = new ArrayList<Point[]>();
-        for (int k = 0; k < tagItem.getCount(); k++) {
+        for (TagItemFrame frame : tagItem.getFrames()) {
             List<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
-            Mat queryDescriptors = tagItem.getDescriptors(k);
-            KeyPoint[] queryKeyPoints = tagItem.getKeyPoints(k);
+            Mat queryDescriptors = frame.descriptors;
+            KeyPoint[] queryKeyPoints = frame.keyPoints;
             mMatcher.knnMatch(queryDescriptors, trainDescriptors, matches, 2);
 
             List<DMatch> good_matches = new ArrayList<DMatch>();
@@ -245,9 +248,9 @@ public class TagDetector {
                 }
                 MatOfPoint2f srcMop = new MatOfPoint2f( //
                         new Point(0, 0), //
-                        new Point(tagItem.getWidth(), 0), //
-                        new Point(tagItem.getWidth(), tagItem.getHeight()), //
-                        new Point(0, tagItem.getHeight()));
+                        new Point(frame.width, 0), //
+                        new Point(frame.width, frame.height), //
+                        new Point(0, frame.height));
                 dstMop = new MatOfPoint2f(srcPt);
                 Core.perspectiveTransform(srcMop, dstMop, homography);
             }

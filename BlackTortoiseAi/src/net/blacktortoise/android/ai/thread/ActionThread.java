@@ -19,6 +19,8 @@ public class ActionThread extends Thread {
         TrackTagAction action = new TrackTagAction();
         action.setup(mActionUtil);
 
+        mActionUtil.getServiceWrapper().sendMove(0, 0);
+        mActionUtil.getServiceWrapper().sendHead(0, 0);
         try {
             int targetid = mActionUtil.getTagDetector().getTagItemIdAt(0);
             while (!Thread.interrupted()) {

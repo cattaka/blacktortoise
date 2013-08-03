@@ -35,6 +35,9 @@
             android:name=".TagManagementActivity"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".TagDetailActivity"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".DebugActivity"
             android:screenOrientation="portrait" />
         <activity

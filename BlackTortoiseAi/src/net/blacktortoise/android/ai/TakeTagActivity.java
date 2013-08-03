@@ -19,7 +19,9 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.highgui.VideoCapture;
+import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -44,7 +46,11 @@ public class TakeTagActivity extends Activity implements OnClickListener {
 
     private int mSeqResultMat;
 
+    private int mSeqResizeMat;
+
     private List<Bitmap> mBitmaps;
+
+    private int mMipmapLevel = 4;
 
     private static Handler sHandler = new Handler() {
         public void handleMessage(android.os.Message msg) {
@@ -65,6 +71,7 @@ public class TakeTagActivity extends Activity implements OnClickListener {
         mWorkCaches = new WorkCaches();
         mSeqCapMat = mWorkCaches.getNextWorkCachesSeq();
         mSeqResultMat = mWorkCaches.getNextWorkCachesSeq();
+        mSeqResizeMat = mWorkCaches.getNextWorkCachesSeq();
 
         mCaptureImageView = (ImageView)findViewById(R.id.captureImageView);
         mCaptureImageView.setOnClickListener(new View.OnClickListener() {
@@ -133,19 +140,36 @@ public class TakeTagActivity extends Activity implements OnClickListener {
                 TagItem tagItem = new TagItem(rect.width, rect.height);
                 mTagDetector.putTagItem(0, tagItem);
                 mBitmaps.clear();
-            }
-            if (mTagTaker.takeMatchNum > 0) { // Extract keypoints for
-                                              // tag
-                mTagTaker.takeMatchNum--;
-                Mat tmp = m4.submat(rect);
-                mTagDetector.upgradeTagItem(mTagDetector.getTagItem(0), tmp);
-                {
-                    Bitmap bitmap = Bitmap
-                            .createBitmap(tmp.width(), tmp.height(), Config.ARGB_8888);
-                    Utils.matToBitmap(tmp, bitmap);
-                    mBitmaps.add(bitmap);
+
+                for (int i = 0; i < mMipmapLevel; i++) {
+                    float rate = 1 - (float)i / (float)4;
+                    int rw = (int)(m4.width() * rate);
+                    int rh = (int)(m4.height() * rate);
+                    Rect r = new Rect((m4.width() - rw) / 2, (m4.height() - rh) / 2, rw, rh);
+                    Mat tmp = mWorkCaches.getWorkMat(mSeqResizeMat, r.width, r.height, m4.type());
+                    {
+                        Imgproc.resize(m4, tmp, new Size(r.width, r.height));
+                        Bitmap bitmap = Bitmap.createBitmap(tmp.width(), tmp.height(),
+                                Config.ARGB_8888);
+                        Utils.matToBitmap(tmp, bitmap);
+                        mBitmaps.add(bitmap);
+                        mTagDetector.upgradeTagItem(tagItem, bitmap);
+                    }
                 }
+
             }
+            // if (mTagTaker.takeMatchNum > 0) { // Extract keypoints for
+            // // tag
+            // mTagTaker.takeMatchNum--;
+            // Mat tmp = m4.submat(rect);
+            // mTagDetector.upgradeTagItem(mTagDetector.getTagItem(0), tmp);
+            // {
+            // Bitmap bitmap = Bitmap
+            // .createBitmap(tmp.width(), tmp.height(), Config.ARGB_8888);
+            // Utils.matToBitmap(tmp, bitmap);
+            // mBitmaps.add(bitmap);
+            // }
+            // }
 
             // ======================
 

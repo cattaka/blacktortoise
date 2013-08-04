@@ -3,10 +3,14 @@ package net.blacktortoise.android.ai.tagdetector;
 
 import org.opencv.core.Point;
 
+import android.util.SparseBooleanArray;
+
 public class TagDetectResult {
     private int mTagKey;
 
     private Point[] mPoints;
+
+    private SparseBooleanArray mDetectedLevels;
 
     public TagDetectResult() {
         super();
@@ -32,6 +36,14 @@ public class TagDetectResult {
 
     public void setPoints(Point[] points) {
         mPoints = points;
+    }
+
+    public SparseBooleanArray getDetectedLevels() {
+        return mDetectedLevels;
+    }
+
+    public void setDetectedLevels(SparseBooleanArray detectedLevels) {
+        mDetectedLevels = detectedLevels;
     }
 
 }

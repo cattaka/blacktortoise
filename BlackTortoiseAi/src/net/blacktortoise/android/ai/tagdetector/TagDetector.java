@@ -2,6 +2,7 @@
 package net.blacktortoise.android.ai.tagdetector;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import net.blacktortoise.android.ai.model.TagItemModel;
@@ -26,8 +27,13 @@ import org.opencv.features2d.KeyPoint;
 
 import android.graphics.Bitmap;
 import android.util.SparseArray;
+import android.util.SparseBooleanArray;
 
 public class TagDetector {
+    public enum DetectFlags {
+        RECORD_LEVELS, DRAW_GOOD;
+    }
+
     private static final int CACHE_DESCRIPTORS = 4;
 
     private static final int CACHE_UPGRADE_TAG = 5;
@@ -117,7 +123,8 @@ public class TagDetector {
                 new TagItemFrame(src.width(), src.height(), queryDescriptors, mokp.toArray()));
     }
 
-    public void detectTags(List<TagDetectResult> dst, Mat src, Mat resultMat) {
+    public void detectTags(List<TagDetectResult> dst, Mat src, Mat resultMat,
+            EnumSet<DetectFlags> flags) {
         KeyPoint[] keypoints;
         Mat descriptors = mWorkCaches.getWorkMat(CACHE_DESCRIPTORS);
         { // Detect and Extract keypoints
@@ -141,14 +148,14 @@ public class TagDetector {
             int tagKey = mTagItems.keyAt(j);
             Mat trainDescriptors = descriptors;
             TagDetectResult result = detectTagInner(src, resultMat, tagKey, trainDescriptors,
-                    keypoints);
+                    keypoints, flags);
             if (result != null) {
                 dst.add(result);
             }
         }
     }
 
-    public TagDetectResult detectTag(Mat src, Mat resultMat, int tagKey) {
+    public TagDetectResult detectTag(Mat src, Mat resultMat, int tagKey, EnumSet<DetectFlags> flags) {
         KeyPoint[] keypoints;
         Mat descriptors = mWorkCaches.getWorkMat(CACHE_DESCRIPTORS);
         { // Detect and Extract keypoints
@@ -168,17 +175,27 @@ public class TagDetector {
             }
 
             Mat trainDescriptors = descriptors;
-            return detectTagInner(src, resultMat, tagKey, trainDescriptors, keypoints);
+            return detectTagInner(src, resultMat, tagKey, trainDescriptors, keypoints, flags);
         } else {
             return null;
         }
     }
 
     public TagDetectResult detectTagInner(Mat src, Mat resultMat, int tagKey, Mat trainDescriptors,
-            KeyPoint[] keypoints) {
+            KeyPoint[] keypoints, EnumSet<DetectFlags> flags) {
+        if (flags == null) {
+            flags = EnumSet.noneOf(DetectFlags.class);
+        }
         TagItem tagItem = mTagItems.get(tagKey);
+        if (tagItem == null) {
+            return null;
+        }
         List<Point[]> goodPts = new ArrayList<Point[]>();
+        SparseBooleanArray detectedLevels = (flags.contains(DetectFlags.RECORD_LEVELS)) ? new SparseBooleanArray()
+                : null;
+        int level = -1;
         for (TagItemFrame frame : tagItem.getFrames()) {
+            level++;
             List<MatOfDMatch> matches = new ArrayList<MatOfDMatch>();
             Mat queryDescriptors = frame.descriptors;
             KeyPoint[] queryKeyPoints = frame.keyPoints;
@@ -260,7 +277,11 @@ public class TagDetector {
                     dstPt = dstMop.toArray();
                     boolean valid = isValid(tagItem.getWidth(), tagItem.getHeight(), dstPt);
                     if (valid) {
+                        // このレベルのもので利用可能なものを見つけた！！
                         goodPts.add(dstPt);
+                        if (detectedLevels != null) {
+                            detectedLevels.put(level, true);
+                        }
                     }
                     // Scalar color = (valid) ? new Scalar(0xFF, 0xFF, 0, 0)
                     // : new Scalar(0xFF, 0,
@@ -270,17 +291,17 @@ public class TagDetector {
                     // Core.line(resultMat, dstPt[2], dstPt[3], color);
                     // Core.line(resultMat, dstPt[3], dstPt[0], color);
                 }
-                { // Draw good point
-                  // for (DMatch m : good_matches) {
-                  // KeyPoint kp = keypoints[m.trainIdx];
-                  // Scalar color = new Scalar(0xFF * m.distance /
-                  // maxDistance, 0xFF, 0, 0);
-                  // Core.circle(resultMat, kp.pt, 10, color, -1);
-                  // }
+                if (flags.contains(DetectFlags.DRAW_GOOD)) {
+                    // Draw good point
+                    for (DMatch m : good_matches) {
+                        KeyPoint kp = keypoints[m.trainIdx];
+                        Scalar color = new Scalar(0xFF * m.distance / maxDistance, 0xFF, 0, 0);
+                        Core.circle(resultMat, kp.pt, 10, color, -1);
+                    }
                 }
             }
         }
-        if (goodPts.size() > 2) {
+        if (goodPts.size() >= 2) {
             Point[] pts = new Point[] {
                     new Point(), new Point(), new Point(), new Point()
             };
@@ -293,6 +314,7 @@ public class TagDetector {
                 Core.line(resultMat, pts[2], pts[3], color);
                 Core.line(resultMat, pts[3], pts[0], color);
             }
+            result.setDetectedLevels(detectedLevels);
             return result;
         } else {
             return null;

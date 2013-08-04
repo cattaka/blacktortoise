@@ -5,10 +5,10 @@
     android:orientation="vertical" >
 
     <Button
-        android:id="@+id/tagTrackerButton"
+        android:id="@+id/testTagTrackButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Tag Tracker" />
+        android:text="Test Tag Track" />
 
     <Button
         android:id="@+id/debugButton"

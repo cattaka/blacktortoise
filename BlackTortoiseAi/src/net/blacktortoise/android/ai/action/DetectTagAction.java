@@ -48,7 +48,7 @@ public class DetectTagAction implements IAction<DetectTagAction.DetectTagArgs, T
                     if (resultMat != null) {
                         capMat.copyTo(resultMat);
                     }
-                    result = tagDetector.detectTag(capMat, resultMat, args.tagKey);
+                    result = tagDetector.detectTag(capMat, resultMat, args.tagKey, null);
                 }
                 util.updateConsole();
                 if (result != null) {

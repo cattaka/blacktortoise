@@ -40,7 +40,7 @@ public class DetectAnyTagAction implements IAction<Integer, List<TagDetectResult
                         capMat.copyTo(resultMat);
                     }
                     results.clear();
-                    tagDetector.detectTags(results, capMat, resultMat);
+                    tagDetector.detectTags(results, capMat, resultMat, null);
                 }
                 util.updateConsole();
                 if (results.size() > 0) {

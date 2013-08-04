@@ -2,6 +2,7 @@
 package net.blacktortoise.android.ai;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import net.blacktortoise.android.ai.core.MyPreferences;
@@ -9,6 +10,7 @@ import net.blacktortoise.android.ai.db.DbHelper;
 import net.blacktortoise.android.ai.model.TagItemModel;
 import net.blacktortoise.android.ai.tagdetector.TagDetectResult;
 import net.blacktortoise.android.ai.tagdetector.TagDetector;
+import net.blacktortoise.android.ai.tagdetector.TagDetector.DetectFlags;
 import net.blacktortoise.android.ai.tagdetector.TagItem;
 import net.blacktortoise.android.ai.util.MyCapture;
 import net.blacktortoise.android.ai.util.WorkCaches;
@@ -28,12 +30,16 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 public class TakeTagActivity extends Activity implements OnClickListener {
+    public static final String EXTRA_TEST_MODE = "testMode";
+
     private static final int EVENT_CAPTURE = 1;
 
     private WorkCaches mWorkCaches;
@@ -41,6 +47,8 @@ public class TakeTagActivity extends Activity implements OnClickListener {
     private MyCapture mMyCapture;
 
     private ImageView mCaptureImageView;
+
+    private TextView mDetectingLevelText;
 
     private int mSeqCapMat;
 
@@ -50,7 +58,7 @@ public class TakeTagActivity extends Activity implements OnClickListener {
 
     private List<Bitmap> mBitmaps;
 
-    private int mMipmapLevel = 4;
+    private int mMipmapLevel = 8;
 
     private static Handler sHandler = new Handler() {
         public void handleMessage(android.os.Message msg) {
@@ -73,6 +81,7 @@ public class TakeTagActivity extends Activity implements OnClickListener {
         mSeqResultMat = mWorkCaches.getNextWorkCachesSeq();
         mSeqResizeMat = mWorkCaches.getNextWorkCachesSeq();
 
+        mDetectingLevelText = (TextView)findViewById(R.id.detectingLevelText);
         mCaptureImageView = (ImageView)findViewById(R.id.captureImageView);
         mCaptureImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,6 +89,10 @@ public class TakeTagActivity extends Activity implements OnClickListener {
                 mTagTaker.resetMatch = true;
             }
         });
+
+        if (getIntent().getBooleanExtra(EXTRA_TEST_MODE, false)) {
+            findViewById(R.id.saveButton).setVisibility(View.INVISIBLE);
+        }
 
         findViewById(R.id.saveButton).setOnClickListener(this);
     }
@@ -142,7 +155,7 @@ public class TakeTagActivity extends Activity implements OnClickListener {
                 mBitmaps.clear();
 
                 for (int i = 0; i < mMipmapLevel; i++) {
-                    float rate = 1 - (float)i / (float)4;
+                    float rate = 1 - (float)i / (float)mMipmapLevel;
                     int rw = (int)(m4.width() * rate);
                     int rh = (int)(m4.height() * rate);
                     Rect r = new Rect((m4.width() - rw) / 2, (m4.height() - rh) / 2, rw, rh);
@@ -182,10 +195,15 @@ public class TakeTagActivity extends Activity implements OnClickListener {
                 }
                 Bitmap bm = mWorkCaches.getWorkBitmap(0, m4.cols(), m4.rows());
                 Utils.matToBitmap(m4, bm);
-                List<TagDetectResult> results = new ArrayList<TagDetectResult>();
-                mTagDetector.detectTags(results, m4, resultMat);
+                TagDetectResult result = mTagDetector.detectTag(m4, resultMat, 0,
+                        EnumSet.of(DetectFlags.RECORD_LEVELS));
                 Utils.matToBitmap(resultMat, bm);
                 mCaptureImageView.setImageBitmap(bm);
+                if (result != null) {
+                    mDetectingLevelText.setText(makeString(result.getDetectedLevels()));
+                } else {
+                    mDetectingLevelText.setText("");
+                }
             }
         }
     }
@@ -207,5 +225,18 @@ public class TakeTagActivity extends Activity implements OnClickListener {
                 finish();
             }
         }
+    }
+
+    private String makeString(SparseBooleanArray array) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < array.size(); i++) {
+            if (array.valueAt(i)) {
+                if (sb.length() > 0) {
+                    sb.append(',');
+                }
+                sb.append(array.keyAt(i));
+            }
+        }
+        return sb.toString();
     }
 }

@@ -8,14 +8,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".TagTrackerActivity" >
 
-    <ImageView
-        android:id="@+id/captureImageView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_launcher" />
 
     <Button
         android:id="@+id/saveButton"
@@ -24,4 +16,24 @@
         android:layout_alignParentBottom="true"
         android:text="Save"
         />
+
+    <ImageView
+        android:id="@+id/captureImageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/saveButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_launcher" />
+
+    <TextView
+        android:id="@+id/detectingLevelText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/saveButton"
+        android:layout_alignRight="@+id/captureImageView"
+        android:text="0/0"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
 </RelativeLayout>

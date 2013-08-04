@@ -29,9 +29,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".TagTrackerActivity"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".TagManagementActivity"
             android:screenOrientation="portrait" />
         <activity

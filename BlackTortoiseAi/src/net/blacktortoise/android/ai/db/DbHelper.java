@@ -40,7 +40,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 return TagItemModelHandler.findOrderByIdAsc(db, -1);
             } else {
                 String[] columnsArray = new String[] {
-                        "id", "name", "label", "thumbnail"
+                        "id", "name", "label", "width", "height", "thumbnail"
                 };
                 String selection = "";
                 String[] selectionArgs = new String[] {};

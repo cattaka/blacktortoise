@@ -23,6 +23,10 @@ public class TagItemModel {
 
     private String label;
 
+    private Integer width;
+
+    private Integer height;
+
     @Attribute(customDataType = FieldType.BLOB, customCoder = BitmapCoder.class)
     private Bitmap thumbnail;
 
@@ -66,6 +70,22 @@ public class TagItemModel {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public Integer getWidth() {
+        return width;
+    }
+
+    public void setWidth(Integer width) {
+        this.width = width;
+    }
+
+    public Integer getHeight() {
+        return height;
+    }
+
+    public void setHeight(Integer height) {
+        this.height = height;
     }
 
     public Bitmap getThumbnail() {

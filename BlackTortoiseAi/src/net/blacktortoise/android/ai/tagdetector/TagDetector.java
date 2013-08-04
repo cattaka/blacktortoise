@@ -62,11 +62,7 @@ public class TagDetector {
     }
 
     public boolean createTagItem(TagItemModel model) {
-        if (model.getBitmaps().size() == 0) {
-            return false;
-        }
-        Bitmap bm = model.getBitmaps().get(0);
-        TagItem item = new TagItem(bm.getWidth(), bm.getHeight());
+        TagItem item = new TagItem(model.getWidth(), model.getHeight());
         item.setName(model.getName());
         for (Bitmap bitmap : model.getBitmaps()) {
             upgradeTagItem(item, bitmap);

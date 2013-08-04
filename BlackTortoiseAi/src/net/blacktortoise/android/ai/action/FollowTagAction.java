@@ -146,6 +146,27 @@ public class FollowTagAction implements IAction<FollowTagAction.FollowTagArgs, T
                 }
 
                 if (enableMove) {
+                    if (scale < 0.8 || 1.2 < scale) {
+                        if (wrapper.getLastYaw() > 0.25 || wrapper.getLastYaw() < -0.25) {
+                            try {
+                                if (wrapper.getLastYaw() > 0.25) {
+                                    wrapper.sendHead(wrapper.getLastYaw() - swingUnit,
+                                            wrapper.getLastPitch());
+                                    wrapper.sendMove(1, -1);
+                                } else if (wrapper.getLastYaw() < -0.25) {
+                                    wrapper.sendHead(wrapper.getLastYaw() + swingUnit,
+                                            wrapper.getLastPitch());
+                                    wrapper.sendMove(1, 1);
+                                }
+                                util.updateConsole();
+                                Thread.sleep(Math.max(turnSleep, headSleep));
+                            } finally {
+                                wrapper.sendMove(0, 0);
+                                util.updateConsole();
+                            }
+                            continue;
+                        }
+                    }
                     if (scale < 0.8) {
                         mMoveAction.execute(util, new MoveArgs(1f, moveSleep));
                         continue;

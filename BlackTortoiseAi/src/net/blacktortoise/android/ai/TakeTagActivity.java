@@ -56,6 +56,8 @@ public class TakeTagActivity extends Activity implements OnClickListener {
 
     private int mSeqResizeMat;
 
+    private TagItem mTagItem;
+
     private List<Bitmap> mBitmaps;
 
     private int mMipmapLevel = 8;
@@ -150,8 +152,8 @@ public class TakeTagActivity extends Activity implements OnClickListener {
                 mTagTaker.resetMatch = false;
                 mTagTaker.takeMatchNum = 5;
                 mTagDetector.removeTagItem(0);
-                TagItem tagItem = new TagItem(rect.width, rect.height);
-                mTagDetector.putTagItem(0, tagItem);
+                mTagItem = new TagItem(rect.width, rect.height);
+                mTagDetector.putTagItem(0, mTagItem);
                 mBitmaps.clear();
 
                 for (int i = 0; i < mMipmapLevel; i++) {
@@ -166,7 +168,7 @@ public class TakeTagActivity extends Activity implements OnClickListener {
                                 Config.ARGB_8888);
                         Utils.matToBitmap(tmp, bitmap);
                         mBitmaps.add(bitmap);
-                        mTagDetector.upgradeTagItem(tagItem, bitmap);
+                        mTagDetector.upgradeTagItem(mTagItem, bitmap);
                     }
                 }
 
@@ -213,6 +215,8 @@ public class TakeTagActivity extends Activity implements OnClickListener {
         if (v.getId() == R.id.saveButton) {
             if (mBitmaps.size() > 0) {
                 TagItemModel model = new TagItemModel();
+                model.setWidth(mTagItem.getWidth());
+                model.setHeight(mTagItem.getHeight());
                 model.setBitmaps(new ArrayList<Bitmap>(mBitmaps));
                 model.updateThumbnail();
 

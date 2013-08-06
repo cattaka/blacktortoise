@@ -121,6 +121,7 @@ public class DebugActivity extends Activity {
         }
         {
             mTagDetector = pref.getTagDetectorAlgorism().createTagDetector();
+            mTagDetector.setGoodThreshold(pref.getGoodThreshold());
             {
                 List<TagItemModel> models = mDbHelper.findTagItemModel(false);
                 for (TagItemModel model : models) {

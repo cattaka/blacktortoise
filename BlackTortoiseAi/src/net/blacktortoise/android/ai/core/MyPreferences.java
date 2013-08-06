@@ -16,6 +16,8 @@ public class MyPreferences {
 
     private String KEY_TAG_DETECTOR_ALGORISM = "TagDetectorAlgorism";
 
+    private String KEY_GOOD_THRESHOLD = "GoodThreshold";
+
     private SharedPreferences mPreferences;
 
     private SharedPreferences.Editor mEditor;
@@ -93,5 +95,13 @@ public class MyPreferences {
 
     public void putTagDetectorAlgorism(TagDetectorAlgorism tagDetectorAlgorism) {
         mEditor.putString(KEY_TAG_DETECTOR_ALGORISM, String.valueOf(tagDetectorAlgorism));
+    }
+
+    public float getGoodThreshold() {
+        return mPreferences.getFloat(KEY_GOOD_THRESHOLD, 0.6f);
+    }
+
+    public void putGoodThreshold(float goodThreshold) {
+        mEditor.putFloat(KEY_GOOD_THRESHOLD, goodThreshold);
     }
 }

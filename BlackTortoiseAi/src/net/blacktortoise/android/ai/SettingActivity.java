@@ -14,8 +14,11 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
 import android.widget.Switch;
+import android.widget.TextView;
 
 public class SettingActivity extends Activity {
     private Switch mRotateCameraView;
@@ -28,6 +31,27 @@ public class SettingActivity extends Activity {
 
     private MyPreferences mPreferences;
 
+    private TextView mGoodThresholdText;
+
+    private SeekBar mGoodThresholdBar;
+
+    private OnSeekBarChangeListener mGoodThresholdBarListener = new OnSeekBarChangeListener() {
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            // none
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+            // none
+        }
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            mGoodThresholdText.setText(String.valueOf(progress));
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +61,12 @@ public class SettingActivity extends Activity {
         mReverseCameraView = (Switch)findViewById(R.id.reverseCameraSwitch);
         mPreviewSizeView = (Spinner)findViewById(R.id.previewSizeSpinner);
         mTagDetectorAlgorismView = (Spinner)findViewById(R.id.tagDetectorAlgorismSpinner);
+        mGoodThresholdText = (TextView)findViewById(R.id.goodThresholdText);
+        mGoodThresholdBar = (SeekBar)findViewById(R.id.goodThresholdBar);
+
+        mGoodThresholdBar.setOnSeekBarChangeListener(mGoodThresholdBarListener);
+
+        mGoodThresholdBar.setMax(100);
     }
 
     @Override
@@ -71,6 +101,7 @@ public class SettingActivity extends Activity {
             mReverseCameraView.setChecked(mPreferences.isReverseCamera());
             setSelection(mPreviewSizeView, mPreferences.getPreviewSize());
             setSelection(mTagDetectorAlgorismView, mPreferences.getTagDetectorAlgorism());
+            mGoodThresholdBar.setProgress((int)(mPreferences.getGoodThreshold() * 100));
         }
     }
 
@@ -94,6 +125,7 @@ public class SettingActivity extends Activity {
         mPreferences.putPreviewSize(String.valueOf(mPreviewSizeView.getSelectedItem()));
         mPreferences.putTagDetectorAlgorism((TagDetectorAlgorism)mTagDetectorAlgorismView
                 .getSelectedItem());
+        mPreferences.putGoodThreshold((float)mGoodThresholdBar.getProgress() / 100f);
         mPreferences.commit();
         mPreferences = null;
     }

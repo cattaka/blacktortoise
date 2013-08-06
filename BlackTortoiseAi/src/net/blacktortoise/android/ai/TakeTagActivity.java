@@ -60,7 +60,7 @@ public class TakeTagActivity extends Activity implements OnClickListener {
 
     private List<Bitmap> mBitmaps;
 
-    private int mMipmapLevel = 8;
+    private int mMipmapLevel = Constants.MIPMAP_LEVEL;
 
     private static Handler sHandler = new Handler() {
         public void handleMessage(android.os.Message msg) {
@@ -113,6 +113,7 @@ public class TakeTagActivity extends Activity implements OnClickListener {
         MyPreferences pref = new MyPreferences(this);
         {
             mTagDetector = pref.getTagDetectorAlgorism().createTagDetector();
+            mTagDetector.setGoodThreshold(pref.getGoodThreshold());
             VideoCapture capture = new VideoCapture();
             mMyCapture = new MyCapture(mWorkCaches, capture);
             mMyCapture.open(pref.isRotateCamera(), pref.isReverseCamera(),
@@ -156,10 +157,11 @@ public class TakeTagActivity extends Activity implements OnClickListener {
                 mTagDetector.putTagItem(0, mTagItem);
                 mBitmaps.clear();
 
+                double rate = Math.sqrt(Constants.MIPMAP_RATE);
+                int rw = m4.width();
+                int rh = m4.height();
+
                 for (int i = 0; i < mMipmapLevel; i++) {
-                    float rate = 1 - (float)i / (float)mMipmapLevel;
-                    int rw = (int)(m4.width() * rate);
-                    int rh = (int)(m4.height() * rate);
                     Rect r = new Rect((m4.width() - rw) / 2, (m4.height() - rh) / 2, rw, rh);
                     Mat tmp = mWorkCaches.getWorkMat(mSeqResizeMat, r.width, r.height, m4.type());
                     {
@@ -169,6 +171,12 @@ public class TakeTagActivity extends Activity implements OnClickListener {
                         Utils.matToBitmap(tmp, bitmap);
                         mBitmaps.add(bitmap);
                         mTagDetector.upgradeTagItem(mTagItem, bitmap);
+                    }
+
+                    rw = (int)(rw / rate);
+                    rh = (int)(rh / rate);
+                    if (rw == 0 || rh == 0) {
+                        break;
                     }
                 }
 

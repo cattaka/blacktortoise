@@ -74,7 +74,7 @@ public class MyCapture {
                     mVideoCapture.get(Highgui.CV_CAP_PROP_FRAME_HEIGHT));
         }
         mVideoCapture.set(Highgui.CV_CAP_PROP_ANDROID_FOCUS_MODE,
-                Highgui.CV_CAP_ANDROID_FOCUS_MODE_AUTO);
+                Highgui.CV_CAP_ANDROID_FOCUS_MODE_MACRO);
     }
 
     private void setup(WorkCaches workCaches) {

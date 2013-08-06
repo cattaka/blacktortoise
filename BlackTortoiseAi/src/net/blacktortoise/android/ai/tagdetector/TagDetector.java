@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import net.blacktortoise.android.ai.Constants;
 import net.blacktortoise.android.ai.model.TagItemModel;
 import net.blacktortoise.android.ai.tagdetector.TagItem.TagItemFrame;
 import net.blacktortoise.android.ai.util.PointUtil;
@@ -13,6 +14,7 @@ import net.blacktortoise.android.ai.util.WorkCaches;
 import org.opencv.android.Utils;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
@@ -24,6 +26,7 @@ import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.KeyPoint;
+import org.opencv.imgproc.Imgproc;
 
 import android.graphics.Bitmap;
 import android.util.SparseArray;
@@ -38,6 +41,10 @@ public class TagDetector {
 
     private static final int CACHE_UPGRADE_TAG = 5;
 
+    private static final int CACHE_GRAYSCALE_1 = 6;
+
+    private static final int CACHE_GRAYSCALE_2 = 7;
+
     private SparseArray<TagItem> mTagItems;
 
     private WorkCaches mWorkCaches;
@@ -47,6 +54,8 @@ public class TagDetector {
     private DescriptorExtractor mExtractor;
 
     private DescriptorMatcher mMatcher;
+
+    private float mGoodThreshold = 0.6f;
 
     private TagDetector() {
         mTagItems = new SparseArray<TagItem>();
@@ -110,9 +119,11 @@ public class TagDetector {
     }
 
     public void upgradeTagItem(TagItem target, Mat src) {
+        Mat grayscale2 = toGrayscale(src);
+
         MatOfKeyPoint mokp = new MatOfKeyPoint();
         Mat queryDescriptors = new Mat();
-        mDetector.detect(src, mokp);
+        mDetector.detect(grayscale2, mokp);
         mExtractor.compute(src, mokp, queryDescriptors);
 
         target.getFrames().add(
@@ -121,12 +132,14 @@ public class TagDetector {
 
     public void detectTags(List<TagDetectResult> dst, Mat src, Mat resultMat,
             EnumSet<DetectFlags> flags) {
+        Mat grayscale2 = toGrayscale(src);
+
         KeyPoint[] keypoints;
         Mat descriptors = mWorkCaches.getWorkMat(CACHE_DESCRIPTORS);
         { // Detect and Extract keypoints
             MatOfKeyPoint mokp = new MatOfKeyPoint();
-            mDetector.detect(src, mokp);
-            mExtractor.compute(src, mokp, descriptors);
+            mDetector.detect(grayscale2, mokp);
+            mExtractor.compute(grayscale2, mokp, descriptors);
             keypoints = mokp.toArray();
         }
 
@@ -134,7 +147,7 @@ public class TagDetector {
             { // Draw Keypoints
                 Scalar color = new Scalar(0xFF, 0xFF, 0xFF, 0xFF);
                 for (KeyPoint kp : keypoints) {
-                    Core.circle(resultMat, kp.pt, 10, color, 1);
+                    Core.circle(resultMat, kp.pt, (int)(kp.size / 8), color, 1);
                 }
             }
         }
@@ -152,12 +165,14 @@ public class TagDetector {
     }
 
     public TagDetectResult detectTag(Mat src, Mat resultMat, int tagKey, EnumSet<DetectFlags> flags) {
+        Mat grayscale2 = toGrayscale(src);
+
         KeyPoint[] keypoints;
         Mat descriptors = mWorkCaches.getWorkMat(CACHE_DESCRIPTORS);
         { // Detect and Extract keypoints
             MatOfKeyPoint mokp = new MatOfKeyPoint();
-            mDetector.detect(src, mokp);
-            mExtractor.compute(src, mokp, descriptors);
+            mDetector.detect(grayscale2, mokp);
+            mExtractor.compute(grayscale2, mokp, descriptors);
             keypoints = mokp.toArray();
         }
         if (descriptors.rows() > 0 && descriptors.cols() > 0) {
@@ -165,7 +180,7 @@ public class TagDetector {
                 { // Draw Keypoints
                     Scalar color = new Scalar(0xFF, 0xFF, 0xFF, 0xFF);
                     for (KeyPoint kp : keypoints) {
-                        Core.circle(resultMat, kp.pt, 10, color, 1);
+                        Core.circle(resultMat, kp.pt, (int)(kp.size / 8), color, 1);
                     }
                 }
             }
@@ -210,7 +225,7 @@ public class TagDetector {
                         m[i] = new DMatch((int)buff[cn * i + 0], (int)buff[cn * i + 1],
                                 (int)buff[cn * i + 2], buff[cn * i + 3]);
 
-                    if (m[0].distance < 0.6 * m[1].distance) {
+                    if (m[0].distance < mGoodThreshold * m[1].distance) {
                         good_matches.add(m[0]);
                     }
                 }
@@ -271,7 +286,7 @@ public class TagDetector {
                 if (dstMop != null) { // Draw line
                     Point[] dstPt = new Point[4];
                     dstPt = dstMop.toArray();
-                    boolean valid = isValid(tagItem.getWidth(), tagItem.getHeight(), dstPt);
+                    boolean valid = isValid(frame.width, frame.height, dstPt);
                     if (valid) {
                         // このレベルのもので利用可能なものを見つけた！！
                         goodPts.add(dstPt);
@@ -292,7 +307,7 @@ public class TagDetector {
                     for (DMatch m : good_matches) {
                         KeyPoint kp = keypoints[m.trainIdx];
                         Scalar color = new Scalar(0xFF * m.distance / maxDistance, 0xFF, 0, 0);
-                        Core.circle(resultMat, kp.pt, 10, color, -1);
+                        Core.circle(resultMat, kp.pt, (int)(kp.size / 8), color, -1);
                     }
                 }
             }
@@ -348,12 +363,32 @@ public class TagDetector {
 
     }
 
+    private Mat toGrayscale(Mat src) {
+        // if (true) {
+        // return src;
+        // }
+        Mat grayscale2 = mWorkCaches.getWorkMat(CACHE_GRAYSCALE_2, src.width(), src.height(),
+                CvType.CV_8U);
+        {
+            Mat grayscale1 = mWorkCaches.getWorkMat(CACHE_GRAYSCALE_1, src.width(), src.height(),
+                    CvType.CV_8U);
+            Imgproc.cvtColor(src, grayscale1, Imgproc.COLOR_BGR2GRAY);
+            Core.normalize(grayscale1, grayscale2, 0, 255, Core.NORM_MINMAX);
+        }
+        return grayscale2;
+    }
+
     public boolean isValid(double width, double height, Point[] ps) {
         double minSquare = 0.25;
-        double maxSquare = 1.5;
+        double maxSquare = Constants.MIPMAP_RATE;
 
         double s = PointUtil.getArea(ps) / (width * height);
 
         return (minSquare <= s && s <= maxSquare);
     }
+
+    public void setGoodThreshold(float goodThreshold) {
+        mGoodThreshold = goodThreshold;
+    }
+
 }

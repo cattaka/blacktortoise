@@ -30,6 +30,7 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.WindowManager;
 import android.widget.ImageView;
 
 public class DebugActivity extends Activity {
@@ -135,6 +136,7 @@ public class DebugActivity extends Activity {
                     pref.getPreviewSizeAsSize());
             prepareActionThread();
         }
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
@@ -172,6 +174,7 @@ public class DebugActivity extends Activity {
                 mDbHelper.close();
             }
         }
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     private void prepareActionThread() {

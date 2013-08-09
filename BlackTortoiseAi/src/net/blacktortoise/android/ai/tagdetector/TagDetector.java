@@ -312,7 +312,7 @@ public class TagDetector {
                 }
             }
         }
-        if (goodPts.size() >= 2) {
+        if (goodPts.size() >= 1) {
             Point[] pts = new Point[] {
                     new Point(), new Point(), new Point(), new Point()
             };
@@ -379,7 +379,7 @@ public class TagDetector {
     }
 
     public boolean isValid(double width, double height, Point[] ps) {
-        double minSquare = 0.25;
+        double minSquare = 0.05;
         double maxSquare = Constants.MIPMAP_RATE;
 
         double s = PointUtil.getArea(ps) / (width * height);

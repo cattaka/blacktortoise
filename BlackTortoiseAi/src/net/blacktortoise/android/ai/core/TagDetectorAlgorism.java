@@ -19,8 +19,12 @@ public enum TagDetectorAlgorism {
                         DescriptorExtractor.create(DescriptorExtractor.SIFT), //
                         DescriptorMatcher.create(DescriptorMatcher.FLANNBASED));
             case ORB_ORB:
+                // return new TagDetector( //
+                // FeatureDetector.create(FeatureDetector.ORB), //
+                // DescriptorExtractor.create(DescriptorExtractor.ORB), //
+                // DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMINGLUT));
                 return new TagDetector( //
-                        FeatureDetector.create(FeatureDetector.ORB), //
+                        FeatureDetector.createOrb(500, 1.2f, 12, 15, 0, 2, 0, 15), //
                         DescriptorExtractor.create(DescriptorExtractor.ORB), //
                         DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMINGLUT));
             case ORB_BRISK:

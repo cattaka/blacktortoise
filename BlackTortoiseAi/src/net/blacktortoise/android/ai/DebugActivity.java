@@ -30,6 +30,8 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
@@ -55,6 +57,8 @@ public class DebugActivity extends Activity {
     private MyCapture mMyCapture;
 
     private ActionThread mActionThread;
+
+    private WakeLock mWakeLock;
 
     private IActionUtilListener mActionUtilListener = new IActionUtilListener() {
         private IndicatorDrawer mIndicatorDrawer = new IndicatorDrawer();
@@ -103,6 +107,9 @@ public class DebugActivity extends Activity {
         mCaptureImageView = (ImageView)findViewById(R.id.captureImageView);
         mMoveIndicator = (ImageView)findViewById(R.id.moveIndicator);
         mHeadIndicator = (ImageView)findViewById(R.id.headIndicator);
+
+        PowerManager pm = (PowerManager)getSystemService(POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, Constants.TAG);
     }
 
     @Override
@@ -136,7 +143,7 @@ public class DebugActivity extends Activity {
                     pref.getPreviewSizeAsSize());
             prepareActionThread();
         }
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        mWakeLock.acquire();
     }
 
     @Override
@@ -175,6 +182,7 @@ public class DebugActivity extends Activity {
             }
         }
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        mWakeLock.release();
     }
 
     private void prepareActionThread() {

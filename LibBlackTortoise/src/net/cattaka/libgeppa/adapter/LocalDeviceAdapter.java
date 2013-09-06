@@ -1,21 +1,22 @@
 
-package net.blacktortoise.androidlib.adapter;
+package net.cattaka.libgeppa.adapter;
 
-import net.blacktortoise.androidlib.IDeviceAdapterListener;
-import net.blacktortoise.androidlib.data.DeviceInfo;
-import net.blacktortoise.androidlib.usb.FtDriverSocketPrepareTask;
+import net.cattaka.libgeppa.data.DeviceInfo;
+import net.cattaka.libgeppa.data.IPacket;
+import net.cattaka.libgeppa.data.IPacketFactory;
+import net.cattaka.libgeppa.net.FtDriverSocketPrepareTask;
 import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 
-public class LocalDeviceAdapter extends BtConnectionAdapter {
+public class LocalDeviceAdapter<T extends IPacket> extends AbsConnectionAdapter<T> {
     private UsbManager mUsbManager;
 
     private UsbDevice mUsbDevice;
 
-    public LocalDeviceAdapter(IDeviceAdapterListener listener, boolean useMainLooperForListener,
-            UsbManager usbManager, UsbDevice usbDevice) {
-        super(listener, useMainLooperForListener);
+    public LocalDeviceAdapter(IDeviceAdapterListener<T> listener, IPacketFactory<T> packetFactory,
+            boolean useMainLooperForListener, UsbManager usbManager, UsbDevice usbDevice) {
+        super(listener, packetFactory, useMainLooperForListener);
         mUsbManager = usbManager;
         mUsbDevice = usbDevice;
     }

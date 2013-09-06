@@ -1,34 +1,29 @@
 
-package net.blacktortoise.androidlib.adapter;
+package net.cattaka.libgeppa.adapter;
 
-import net.blacktortoise.androidlib.IDeviceAdapter;
-import net.blacktortoise.androidlib.IDeviceAdapterListener;
-import net.blacktortoise.androidlib.data.BtPacket;
-import net.blacktortoise.androidlib.data.BtPacketFactory;
-import net.blacktortoise.androidlib.data.DeviceEventCode;
-import net.blacktortoise.androidlib.data.DeviceInfo;
-import net.blacktortoise.androidlib.data.DeviceState;
-import net.blacktortoise.androidlib.util.DeviceUtil;
 import net.cattaka.libgeppa.data.ConnectionCode;
 import net.cattaka.libgeppa.data.ConnectionState;
+import net.cattaka.libgeppa.data.DeviceEventCode;
+import net.cattaka.libgeppa.data.DeviceInfo;
+import net.cattaka.libgeppa.data.DeviceState;
+import net.cattaka.libgeppa.data.IPacket;
+import net.cattaka.libgeppa.data.IPacketFactory;
 import net.cattaka.libgeppa.thread.ConnectionThread;
 import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;
 import net.cattaka.libgeppa.thread.IConnectionThreadListener;
+import net.cattaka.libgeppa.util.DeviceUtil;
 
-public abstract class BtConnectionAdapter implements IDeviceAdapter {
-    private ConnectionThread<BtPacket> mConnectionThread;
+public abstract class AbsConnectionAdapter<T extends IPacket> implements IDeviceAdapter<T> {
+    private ConnectionThread<T> mConnectionThread;
 
-    private IDeviceAdapterListener mListener;
+    private IDeviceAdapterListener<T> mListener;
 
-    private BtPacketFactory mPacketFactory;
-    {
-        mPacketFactory = new BtPacketFactory();
-    }
+    protected IPacketFactory<T> mPacketFactory;
 
-    private IConnectionThreadListener<BtPacket> mConnectionThreadListener = new IConnectionThreadListener<BtPacket>() {
+    private IConnectionThreadListener<T> mConnectionThreadListener = new IConnectionThreadListener<T>() {
 
         @Override
-        public void onReceive(BtPacket packet) {
+        public void onReceive(T packet) {
             mListener.onReceivePacket(packet);
         }
 
@@ -41,9 +36,11 @@ public abstract class BtConnectionAdapter implements IDeviceAdapter {
         }
     };
 
-    public BtConnectionAdapter(IDeviceAdapterListener listener, boolean useMainLooperForListener) {
+    public AbsConnectionAdapter(IDeviceAdapterListener<T> listener,
+            IPacketFactory<T> packetFactory, boolean useMainLooperForListener) {
         super();
         mListener = listener;
+        mPacketFactory = packetFactory;
     }
 
     abstract protected IRawSocketPrepareTask createRawSocketPrepareTask();
@@ -53,8 +50,8 @@ public abstract class BtConnectionAdapter implements IDeviceAdapter {
         if (mConnectionThread != null) {
             throw new IllegalStateException("Already running.");
         }
-        mConnectionThread = new ConnectionThread<BtPacket>(createRawSocketPrepareTask(),
-                mPacketFactory, mConnectionThreadListener, true);
+        mConnectionThread = new ConnectionThread<T>(createRawSocketPrepareTask(), mPacketFactory,
+                mConnectionThreadListener, true);
         mConnectionThread.startThread();
     }
 
@@ -64,7 +61,7 @@ public abstract class BtConnectionAdapter implements IDeviceAdapter {
     }
 
     @Override
-    public boolean sendPacket(BtPacket packet) {
+    public boolean sendPacket(T packet) {
         return mConnectionThread.sendPacket(packet);
     }
 

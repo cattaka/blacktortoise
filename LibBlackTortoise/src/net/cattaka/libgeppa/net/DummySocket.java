@@ -1,5 +1,5 @@
 
-package net.blacktortoise.androidlib.usb;
+package net.cattaka.libgeppa.net;
 
 import java.io.IOException;
 import java.io.InputStream;

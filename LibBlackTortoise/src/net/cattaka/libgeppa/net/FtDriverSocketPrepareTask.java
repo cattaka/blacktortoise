@@ -1,5 +1,5 @@
 
-package net.blacktortoise.androidlib.usb;
+package net.cattaka.libgeppa.net;
 
 import jp.ksksue.driver.serial.FTDriver;
 import net.cattaka.libgeppa.IRawSocket;

@@ -10,11 +10,12 @@ import net.blacktortoise.androidlib.BlackTortoiseFunctions;
 import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
 import net.blacktortoise.androidlib.IBlackTortoiseService;
 import net.blacktortoise.androidlib.IBlackTortoiseServiceListener;
-import net.blacktortoise.androidlib.IDeviceAdapterListener;
 import net.blacktortoise.androidlib.data.BtPacket;
-import net.blacktortoise.androidlib.data.DeviceEventCode;
-import net.blacktortoise.androidlib.data.DeviceInfo;
-import net.blacktortoise.androidlib.data.DeviceState;
+import net.cattaka.libgeppa.adapter.IDeviceAdapterListener;
+import net.cattaka.libgeppa.data.DeviceEventCode;
+import net.cattaka.libgeppa.data.DeviceInfo;
+import net.cattaka.libgeppa.data.DeviceState;
+import net.cattaka.libgeppa.data.PacketWrapper;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -38,7 +39,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
 
     private BlackTortoiseServiceWrapper mServiceWrapper;
 
-    private List<IDeviceAdapterListener> mDeviceAdapterListeners;
+    private List<IDeviceAdapterListener<BtPacket>> mDeviceAdapterListeners;
 
     private int mServiceListenerSeq = -1;
 
@@ -67,9 +68,9 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
 
     private IBlackTortoiseServiceListener mServiceListener = new IBlackTortoiseServiceListener.Stub() {
         @Override
-        public void onReceivePacket(BtPacket packet) throws RemoteException {
+        public void onReceivePacket(PacketWrapper packet) throws RemoteException {
             sHandler.obtainMessage(EVENT_ON_RECEIVE_PACKET, new Object[] {
-                    me, packet
+                    me, packet.getPacket()
             }).sendToTarget();
         }
 
@@ -86,11 +87,11 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
             Object[] objs = (Object[])msg.obj;
             MainActivity target = (MainActivity)objs[0];
             if (msg.what == EVENT_ON_RECEIVE_PACKET) {
-                for (IDeviceAdapterListener listener : target.mDeviceAdapterListeners) {
+                for (IDeviceAdapterListener<BtPacket> listener : target.mDeviceAdapterListeners) {
                     listener.onReceivePacket((BtPacket)objs[1]);
                 }
             } else if (msg.what == EVENT_ON_DEVICE_STATE_CHANGED) {
-                for (IDeviceAdapterListener listener : target.mDeviceAdapterListeners) {
+                for (IDeviceAdapterListener<BtPacket> listener : target.mDeviceAdapterListeners) {
                     listener.onDeviceStateChanged((DeviceState)objs[1], (DeviceEventCode)objs[2],
                             (DeviceInfo)objs[3]);
                 }
@@ -105,7 +106,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
 
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitAll().build());
 
-        mDeviceAdapterListeners = new ArrayList<IDeviceAdapterListener>();
+        mDeviceAdapterListeners = new ArrayList<IDeviceAdapterListener<BtPacket>>();
 
         if (getFragmentManager().findFragmentById(R.id.primaryFragment) == null) {
             ConnectFragment fragment = new ConnectFragment();
@@ -164,7 +165,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     }
 
     @Override
-    public boolean registerDeviceAdapterListener(IDeviceAdapterListener listener) {
+    public boolean registerDeviceAdapterListener(IDeviceAdapterListener<BtPacket> listener) {
         if (!mDeviceAdapterListeners.contains(listener)) {
             mDeviceAdapterListeners.add(listener);
             return true;
@@ -174,7 +175,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
     }
 
     @Override
-    public boolean unregisterDeviceAdapterListener(IDeviceAdapterListener listener) {
+    public boolean unregisterDeviceAdapterListener(IDeviceAdapterListener<BtPacket> listener) {
         return mDeviceAdapterListeners.remove(listener);
     }
 

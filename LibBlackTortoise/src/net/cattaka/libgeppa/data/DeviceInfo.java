@@ -1,7 +1,7 @@
 
-package net.blacktortoise.androidlib.data;
+package net.cattaka.libgeppa.data;
 
-import net.blacktortoise.androidlib.Constants;
+import net.cattaka.libgeppa.Constants;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;

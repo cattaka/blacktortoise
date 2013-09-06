@@ -1,13 +1,13 @@
 
-package net.blacktortoise.androidlib.usb;
+package net.cattaka.libgeppa.net;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 import jp.ksksue.driver.serial.FTDriver;
-import net.blacktortoise.androidlib.exception.NotImplementedException;
 import net.cattaka.libgeppa.IRawSocket;
+import net.cattaka.libgeppa.exception.NotImplementedException;
 
 public class FtDriverSocket implements IRawSocket {
     private class InputStreamEx extends InputStream {

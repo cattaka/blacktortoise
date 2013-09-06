@@ -3,7 +3,6 @@ package net.blacktortoise.android.dialog;
 
 import net.blacktortoise.android.R;
 import net.blacktortoise.android.entity.MySocketAddress;
-import net.blacktortoise.androidlib.Constants;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -40,7 +39,7 @@ public class EditAddrresDialog implements DialogInterface.OnClickListener,
     public void onClick(DialogInterface dialog, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
             String hostName = mHostNameEdit.getText().toString();
-            int port = Constants.DEFAULT_SERVER_PORT;
+            int port = net.cattaka.libgeppa.Constants.DEFAULT_SERVER_PORT;
             try {
                 port = Integer.parseInt(mPortEdit.getText().toString());
             } catch (NumberFormatException e) {
@@ -77,13 +76,14 @@ public class EditAddrresDialog implements DialogInterface.OnClickListener,
             if (addr.getPort() != null) {
                 mPortEdit.setText(String.valueOf(addr.getPort()));
             } else {
-                mPortEdit.setText(String.valueOf(Constants.DEFAULT_SERVER_PORT));
+                mPortEdit.setText(String
+                        .valueOf(net.cattaka.libgeppa.Constants.DEFAULT_SERVER_PORT));
             }
         } else {
             mDialog.setTitle(R.string.title_input_socket_address);
             mDialog.getButton(DialogInterface.BUTTON_NEUTRAL).setVisibility(View.INVISIBLE);
             mHostNameEdit.setText("");
-            mPortEdit.setText(String.valueOf(Constants.DEFAULT_SERVER_PORT));
+            mPortEdit.setText(String.valueOf(net.cattaka.libgeppa.Constants.DEFAULT_SERVER_PORT));
             mCurrentId = null;
         }
     }

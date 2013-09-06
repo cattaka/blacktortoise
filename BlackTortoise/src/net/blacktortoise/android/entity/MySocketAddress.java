@@ -1,7 +1,7 @@
 
 package net.blacktortoise.android.entity;
 
-import net.blacktortoise.androidlib.data.DeviceInfo;
+import net.cattaka.libgeppa.data.DeviceInfo;
 import net.cattaka.util.gendbhandler.Attribute;
 import net.cattaka.util.gendbhandler.GenDbHandler;
 

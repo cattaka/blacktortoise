@@ -2,8 +2,8 @@
 package net.blacktortoise.androidlib;
 
 import net.blacktortoise.androidlib.IBlackTortoiseServiceListener;
-import net.blacktortoise.androidlib.data.BtPacket;
-import net.blacktortoise.androidlib.data.DeviceInfo;
+import net.cattaka.libgeppa.data.PacketWrapper;
+import net.cattaka.libgeppa.data.DeviceInfo;
 
 interface IBlackTortoiseService {
 
@@ -20,5 +20,5 @@ interface IBlackTortoiseService {
     /**
      * @see ConnectionThread#sendPacket(net.cattaka.libgeppa.data.IPacket)
      */
-    boolean sendPacket(in BtPacket packet);
+    boolean sendPacket(in PacketWrapper packet);
 }

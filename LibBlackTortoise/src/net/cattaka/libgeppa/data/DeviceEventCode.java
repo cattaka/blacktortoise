@@ -1,5 +1,5 @@
 
-package net.blacktortoise.androidlib.data;
+package net.cattaka.libgeppa.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;

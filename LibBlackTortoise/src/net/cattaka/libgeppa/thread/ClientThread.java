@@ -1,5 +1,5 @@
 
-package net.blacktortoise.androidlib.net;
+package net.cattaka.libgeppa.thread;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,23 +8,23 @@ import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import net.blacktortoise.androidlib.Constants;
-import net.blacktortoise.androidlib.data.BtPacket;
-import net.blacktortoise.androidlib.data.BtPacketFactory;
+import net.cattaka.libgeppa.Constants;
+import net.cattaka.libgeppa.data.IPacket;
+import net.cattaka.libgeppa.data.IPacketFactory;
 import android.util.Log;
 
-public class ClientThread extends Thread {
-    public interface IClientThreadListener {
+public class ClientThread<T extends IPacket> extends Thread {
+    public interface IClientThreadListener<T extends IPacket> {
         /**
          * Note : This method is called from ClientReceiveThread, it's not UI
          * thread.
          */
-        public void onReceivePacket(ClientThread target, BtPacket packet);
+        public void onReceivePacket(ClientThread<T> target, T packet);
 
         /**
          * Note : This method is called from this thread, it's not UI thread.
          */
-        public void onDisconnected(ClientThread target);
+        public void onDisconnected(ClientThread<T> target);
     }
 
     private static class MyEvent {
@@ -39,17 +39,17 @@ public class ClientThread extends Thread {
         }
     }
 
-    private static class ClientReceiveThread extends Thread {
-        private ClientThread mParent;
+    private static class ClientReceiveThread<T extends IPacket> extends Thread {
+        private ClientThread<T> mParent;
 
         private InputStream mInputStream;
 
-        private BtPacketFactory mPacketFactory;
+        private IPacketFactory<T> mPacketFactory;
 
-        private IClientThreadListener mListener;
+        private IClientThreadListener<T> mListener;
 
-        public ClientReceiveThread(ClientThread parent, InputStream inputStream,
-                BtPacketFactory packetFactory, IClientThreadListener listener) {
+        public ClientReceiveThread(ClientThread<T> parent, InputStream inputStream,
+                IPacketFactory<T> packetFactory, IClientThreadListener<T> listener) {
             super("ClientReceiveThread:" + parent);
             mParent = parent;
             mInputStream = inputStream;
@@ -62,7 +62,7 @@ public class ClientThread extends Thread {
             super.run();
             try {
                 while (true) {
-                    BtPacket packet = mPacketFactory.readPacket(mInputStream);
+                    T packet = mPacketFactory.readPacket(mInputStream);
                     if (packet != null) {
                         mListener.onReceivePacket(mParent, packet);
                     }
@@ -76,13 +76,17 @@ public class ClientThread extends Thread {
 
     private Socket mSocket;
 
-    private IClientThreadListener mListener;
+    private IPacketFactory<T> mPacketFactory;
+
+    private IClientThreadListener<T> mListener;
 
     private BlockingQueue<MyEvent> mEventQueue;
 
-    public ClientThread(Socket socket, IClientThreadListener listener) {
+    public ClientThread(Socket socket, IPacketFactory<T> packetFactory,
+            IClientThreadListener<T> listener) {
         super("ClientThread:" + socket);
         mSocket = socket;
+        mPacketFactory = packetFactory;
         mListener = listener;
         mEventQueue = new LinkedBlockingQueue<ClientThread.MyEvent>();
     }
@@ -90,15 +94,14 @@ public class ClientThread extends Thread {
     @Override
     public void run() {
         super.run();
-        ClientReceiveThread receiveThread = null;
+        ClientReceiveThread<T> receiveThread = null;
         try {
-            BtPacketFactory packetFactory = new BtPacketFactory();
             InputStream in = mSocket.getInputStream();
             OutputStream out = mSocket.getOutputStream();
             { // Creates receiving thread
               // Note: The receiving thread will stop on mSocket.close() in
               // finally block.
-                receiveThread = new ClientReceiveThread(this, in, packetFactory, mListener);
+                receiveThread = new ClientReceiveThread<T>(this, in, mPacketFactory, mListener);
                 receiveThread.start();
             }
 
@@ -107,7 +110,9 @@ public class ClientThread extends Thread {
                 if (event.eventCode == 0) {
                     break;
                 } else if (event.eventCode == 1) {
-                    packetFactory.writePacket(out, (BtPacket)event.data);
+                    @SuppressWarnings("unchecked")
+                    T packet = (T)event.data;
+                    mPacketFactory.writePacket(out, packet);
                     out.flush();
                 }
             }
@@ -135,7 +140,7 @@ public class ClientThread extends Thread {
         }
     }
 
-    public void sendPacket(BtPacket packet) {
+    public void sendPacket(T packet) {
         mEventQueue.add(new MyEvent(1, packet));
     }
 

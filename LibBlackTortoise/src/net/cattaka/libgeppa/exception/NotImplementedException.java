@@ -1,5 +1,5 @@
 
-package net.blacktortoise.androidlib.exception;
+package net.cattaka.libgeppa.exception;
 
 public class NotImplementedException extends RuntimeException {
     private static final long serialVersionUID = 1L;

@@ -14,14 +14,15 @@ import net.blacktortoise.android.camera.ICameraManagerAdapter;
 import net.blacktortoise.android.camera.RemoteCameraManager;
 import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
 import net.blacktortoise.androidlib.data.BtPacket;
-import net.blacktortoise.androidlib.data.DeviceEventCode;
-import net.blacktortoise.androidlib.data.DeviceInfo;
-import net.blacktortoise.androidlib.data.DeviceState;
+import net.blacktortoise.androidlib.data.BtPacketFactory;
 import net.blacktortoise.androidlib.data.OpCode;
-import net.blacktortoise.androidlib.net.ClientThread;
-import net.blacktortoise.androidlib.net.ServerThread;
-import net.blacktortoise.androidlib.net.ServerThread.IServerThreadListener;
-import net.blacktortoise.androidlib.net.data.SocketState;
+import net.cattaka.libgeppa.data.DeviceEventCode;
+import net.cattaka.libgeppa.data.DeviceInfo;
+import net.cattaka.libgeppa.data.DeviceState;
+import net.cattaka.libgeppa.data.SocketState;
+import net.cattaka.libgeppa.thread.ClientThread;
+import net.cattaka.libgeppa.thread.ServerThread;
+import net.cattaka.libgeppa.thread.ServerThread.IServerThreadListener;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.os.Bundle;
@@ -37,16 +38,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 public class ServerModeFragment extends BaseFragment implements OnClickListener {
-    private ServerThread mServerThread;
+    private ServerThread<BtPacket> mServerThread;
 
-    private IServerThreadListener mServerThreadListener = new IServerThreadListener() {
+    private IServerThreadListener<BtPacket> mServerThreadListener = new IServerThreadListener<BtPacket>() {
         @Override
-        public void onClientConnected(ClientThread target) {
+        public void onClientConnected(ClientThread<BtPacket> target) {
             refleshRomoteControllerList();
         }
 
         @Override
-        public void onClientDisconnected(ClientThread target) {
+        public void onClientDisconnected(ClientThread<BtPacket> target) {
             refleshRomoteControllerList();
         }
 
@@ -59,7 +60,7 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
          * When receive packet from remote client, pass it to USB device.
          */
         @Override
-        public void onReceivePacket(ClientThread from, BtPacket packet) {
+        public void onReceivePacket(ClientThread<BtPacket> from, BtPacket packet) {
             getServiceWrapper().sendPacket(packet);
             if (packet.getOpCode() == OpCode.REQUEST_CAMERA_IMAGE) {
                 synchronized (mRequestedCameraImageClients) {
@@ -85,7 +86,7 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
                     bitmap.compress(CompressFormat.JPEG, 50, bout);
                     byte[] data = bout.toByteArray();
                     BtPacket packet = new BtPacket(OpCode.CAMERA_IMAGE, data.length, data);
-                    for (ClientThread ct : mRequestedCameraImageClients) {
+                    for (ClientThread<BtPacket> ct : mRequestedCameraImageClients) {
                         ct.sendPacket(packet);
                     }
                     mRequestedCameraImageClients.clear();
@@ -102,12 +103,12 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
 
     private ICameraManager mCameraManager;
 
-    private Set<ClientThread> mRequestedCameraImageClients;
+    private Set<ClientThread<BtPacket>> mRequestedCameraImageClients;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mRequestedCameraImageClients = new HashSet<ClientThread>();
+        mRequestedCameraImageClients = new HashSet<ClientThread<BtPacket>>();
     }
 
     @Override
@@ -131,7 +132,8 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
         if (mServerThread != null) {
             mServerThread.stopThread();
         }
-        mServerThread = new ServerThread(5000, mServerThreadListener);
+        mServerThread = new ServerThread<BtPacket>(5000, new BtPacketFactory(),
+                mServerThreadListener);
         try {
             mServerThread.startThread();
         } catch (InterruptedException e) {
@@ -181,7 +183,7 @@ public class ServerModeFragment extends BaseFragment implements OnClickListener 
     public void refleshRomoteControllerList() {
         if (mServerThread != null) {
             List<String> labels = new ArrayList<String>();
-            for (ClientThread ct : mServerThread.getClientThreads()) {
+            for (ClientThread<BtPacket> ct : mServerThread.getClientThreads()) {
                 labels.add(ct.getLabel());
             }
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(),

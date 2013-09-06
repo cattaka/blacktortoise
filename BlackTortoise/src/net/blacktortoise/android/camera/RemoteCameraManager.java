@@ -3,16 +3,16 @@ package net.blacktortoise.android.camera;
 
 import net.blacktortoise.android.fragment.BaseFragment.IBaseFragmentAdapter;
 import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
-import net.blacktortoise.androidlib.IDeviceAdapterListener;
 import net.blacktortoise.androidlib.data.BtPacket;
-import net.blacktortoise.androidlib.data.DeviceEventCode;
-import net.blacktortoise.androidlib.data.DeviceInfo;
-import net.blacktortoise.androidlib.data.DeviceState;
 import net.blacktortoise.androidlib.data.OpCode;
+import net.cattaka.libgeppa.adapter.IDeviceAdapterListener;
+import net.cattaka.libgeppa.data.DeviceEventCode;
+import net.cattaka.libgeppa.data.DeviceInfo;
+import net.cattaka.libgeppa.data.DeviceState;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-public class RemoteCameraManager implements ICameraManager, IDeviceAdapterListener {
+public class RemoteCameraManager implements ICameraManager, IDeviceAdapterListener<BtPacket> {
     private ICameraManagerAdapter mCameraManagerAdapter;
 
     private IBaseFragmentAdapter mBaseFragmentAdapter;

@@ -2,11 +2,11 @@
 package net.blacktortoise.android.fragment;
 
 import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
-import net.blacktortoise.androidlib.IDeviceAdapterListener;
 import net.blacktortoise.androidlib.data.BtPacket;
-import net.blacktortoise.androidlib.data.DeviceEventCode;
-import net.blacktortoise.androidlib.data.DeviceInfo;
-import net.blacktortoise.androidlib.data.DeviceState;
+import net.cattaka.libgeppa.adapter.IDeviceAdapterListener;
+import net.cattaka.libgeppa.data.DeviceEventCode;
+import net.cattaka.libgeppa.data.DeviceInfo;
+import net.cattaka.libgeppa.data.DeviceState;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -19,7 +19,7 @@ import android.content.IntentFilter;
  * 
  * @author cattaka
  */
-public class BaseFragment extends Fragment implements IDeviceAdapterListener {
+public class BaseFragment extends Fragment implements IDeviceAdapterListener<BtPacket> {
     public interface IBaseFragmentAdapter {
         public Object getSystemService(String name);
 
@@ -31,9 +31,9 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
 
         public BlackTortoiseServiceWrapper getServiceWrapper();
 
-        public boolean registerDeviceAdapterListener(IDeviceAdapterListener listener);
+        public boolean registerDeviceAdapterListener(IDeviceAdapterListener<BtPacket> listener);
 
-        public boolean unregisterDeviceAdapterListener(IDeviceAdapterListener listener);
+        public boolean unregisterDeviceAdapterListener(IDeviceAdapterListener<BtPacket> listener);
 
         public void runOnUiThread(Runnable action);
 
@@ -88,12 +88,12 @@ public class BaseFragment extends Fragment implements IDeviceAdapterListener {
     }
 
     /** Do only delegation */
-    public boolean registerDeviceAdapterListener(IDeviceAdapterListener listener) {
+    public boolean registerDeviceAdapterListener(IDeviceAdapterListener<BtPacket> listener) {
         return getBaseFragmentAdapter().registerDeviceAdapterListener(listener);
     }
 
     /** Do only delegation */
-    public boolean unregisterDeviceAdapterListener(IDeviceAdapterListener listener) {
+    public boolean unregisterDeviceAdapterListener(IDeviceAdapterListener<BtPacket> listener) {
         return getBaseFragmentAdapter().unregisterDeviceAdapterListener(listener);
     }
 

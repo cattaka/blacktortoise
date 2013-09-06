@@ -1,5 +1,5 @@
 
-package net.blacktortoise.androidlib.usb;
+package net.cattaka.libgeppa.net;
 
 import net.cattaka.libgeppa.IRawSocket;
 import net.cattaka.libgeppa.thread.ConnectionThread.IRawSocketPrepareTask;

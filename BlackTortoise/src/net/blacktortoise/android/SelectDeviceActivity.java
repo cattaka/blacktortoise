@@ -12,11 +12,11 @@ import net.blacktortoise.android.dialog.EditAddrresDialog.IEditAddrresDialogList
 import net.blacktortoise.android.entity.MySocketAddress;
 import net.blacktortoise.androidlib.IBlackTortoiseService;
 import net.blacktortoise.androidlib.IBlackTortoiseServiceListener;
-import net.blacktortoise.androidlib.data.BtPacket;
-import net.blacktortoise.androidlib.data.DeviceEventCode;
-import net.blacktortoise.androidlib.data.DeviceInfo;
-import net.blacktortoise.androidlib.data.DeviceState;
-import net.blacktortoise.androidlib.usb.UsbClass;
+import net.cattaka.libgeppa.data.DeviceEventCode;
+import net.cattaka.libgeppa.data.DeviceInfo;
+import net.cattaka.libgeppa.data.DeviceState;
+import net.cattaka.libgeppa.data.PacketWrapper;
+import net.cattaka.libgeppa.net.UsbClass;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -107,7 +107,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
         private ProgressDialog mProgressDialog;
 
         @Override
-        public void onReceivePacket(BtPacket packet) throws RemoteException {
+        public void onReceivePacket(PacketWrapper packet) throws RemoteException {
             // ignore
         }
 

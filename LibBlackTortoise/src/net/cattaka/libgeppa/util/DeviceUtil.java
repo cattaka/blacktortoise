@@ -1,10 +1,10 @@
 
-package net.blacktortoise.androidlib.util;
+package net.cattaka.libgeppa.util;
 
-import net.blacktortoise.androidlib.data.DeviceEventCode;
-import net.blacktortoise.androidlib.data.DeviceState;
 import net.cattaka.libgeppa.data.ConnectionCode;
 import net.cattaka.libgeppa.data.ConnectionState;
+import net.cattaka.libgeppa.data.DeviceEventCode;
+import net.cattaka.libgeppa.data.DeviceState;
 
 public class DeviceUtil {
     public static DeviceState toDeviceState(ConnectionState state) {

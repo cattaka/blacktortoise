@@ -2,8 +2,9 @@
 package net.blacktortoise.androidlib;
 
 import net.blacktortoise.androidlib.data.BtPacket;
-import net.blacktortoise.androidlib.data.DeviceInfo;
 import net.blacktortoise.androidlib.data.OpCode;
+import net.cattaka.libgeppa.data.DeviceInfo;
+import net.cattaka.libgeppa.data.PacketWrapper;
 import android.os.RemoteException;
 
 public class BlackTortoiseServiceWrapper {
@@ -39,7 +40,7 @@ public class BlackTortoiseServiceWrapper {
         mBuffer[3] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * rightMotor2)));
         BtPacket packet = new BtPacket(OpCode.MOVE, 4, mBuffer);
         try {
-            return mService.sendPacket(packet);
+            return mService.sendPacket(new PacketWrapper(packet));
         } catch (RemoteException e) {
             return false;
         }
@@ -50,7 +51,7 @@ public class BlackTortoiseServiceWrapper {
         mBuffer[1] = (byte)Math.max(0, Math.min(0xFF, (int)(0xFF * pitch)));
         BtPacket packet = new BtPacket(OpCode.HEAD, 2, mBuffer);
         try {
-            return mService.sendPacket(packet);
+            return mService.sendPacket(new PacketWrapper(packet));
         } catch (RemoteException e) {
             return false;
         }
@@ -59,7 +60,7 @@ public class BlackTortoiseServiceWrapper {
     public boolean sendEcho(byte[] data) {
         BtPacket packet = new BtPacket(OpCode.ECHO, data.length, data);
         try {
-            return mService.sendPacket(packet);
+            return mService.sendPacket(new PacketWrapper(packet));
         } catch (RemoteException e) {
             return false;
         }
@@ -69,15 +70,15 @@ public class BlackTortoiseServiceWrapper {
         mBuffer[0] = (byte)cameraIdx;
         BtPacket packet = new BtPacket(OpCode.REQUEST_CAMERA_IMAGE, 1, mBuffer);
         try {
-            return mService.sendPacket(packet);
+            return mService.sendPacket(new PacketWrapper(packet));
         } catch (RemoteException e) {
             return false;
         }
     }
 
-    public boolean sendPacket(BtPacket arg0) {
+    public boolean sendPacket(BtPacket packet) {
         try {
-            return mService.sendPacket(arg0);
+            return mService.sendPacket(new PacketWrapper(packet));
         } catch (RemoteException e) {
             return false;
         }

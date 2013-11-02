@@ -8,9 +8,9 @@ import net.blacktortoise.android.fragment.BaseFragment.IBaseFragmentAdapter;
 import net.blacktortoise.android.fragment.ConnectFragment;
 import net.blacktortoise.androidlib.BlackTortoiseFunctions;
 import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
-import net.blacktortoise.androidlib.IBlackTortoiseService;
-import net.blacktortoise.androidlib.IBlackTortoiseServiceListener;
 import net.blacktortoise.androidlib.data.BtPacket;
+import net.cattaka.libgeppa.IActiveGeppaService;
+import net.cattaka.libgeppa.IActiveGeppaServiceListener;
 import net.cattaka.libgeppa.adapter.IDeviceAdapterListener;
 import net.cattaka.libgeppa.data.DeviceEventCode;
 import net.cattaka.libgeppa.data.DeviceInfo;
@@ -52,7 +52,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
-            IBlackTortoiseService service = IBlackTortoiseService.Stub.asInterface(binder);
+            IActiveGeppaService service = IActiveGeppaService.Stub.asInterface(binder);
             mServiceWrapper = new BlackTortoiseServiceWrapper(service);
             if (mServiceListenerSeq < 0) {
                 try {
@@ -66,7 +66,7 @@ public class MainActivity extends Activity implements IBaseFragmentAdapter {
         }
     };
 
-    private IBlackTortoiseServiceListener mServiceListener = new IBlackTortoiseServiceListener.Stub() {
+    private IActiveGeppaServiceListener mServiceListener = new IActiveGeppaServiceListener.Stub() {
         @Override
         public void onReceivePacket(PacketWrapper packet) throws RemoteException {
             sHandler.obtainMessage(EVENT_ON_RECEIVE_PACKET, new Object[] {

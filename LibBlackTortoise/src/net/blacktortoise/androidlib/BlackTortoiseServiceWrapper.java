@@ -3,6 +3,7 @@ package net.blacktortoise.androidlib;
 
 import net.blacktortoise.androidlib.data.BtPacket;
 import net.blacktortoise.androidlib.data.OpCode;
+import net.cattaka.libgeppa.IActiveGeppaService;
 import net.cattaka.libgeppa.data.DeviceInfo;
 import net.cattaka.libgeppa.data.PacketWrapper;
 import android.os.RemoteException;
@@ -10,14 +11,14 @@ import android.os.RemoteException;
 public class BlackTortoiseServiceWrapper {
     private byte[] mBuffer = new byte[0x100];
 
-    private IBlackTortoiseService mService;
+    private IActiveGeppaService mService;
 
-    public BlackTortoiseServiceWrapper(IBlackTortoiseService service) {
+    public BlackTortoiseServiceWrapper(IActiveGeppaService service) {
         super();
         mService = service;
     }
 
-    public IBlackTortoiseService getService() {
+    public IActiveGeppaService getService() {
         return mService;
     }
 

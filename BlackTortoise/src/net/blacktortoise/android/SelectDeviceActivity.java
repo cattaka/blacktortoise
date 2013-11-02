@@ -10,8 +10,8 @@ import net.blacktortoise.android.db.BtDbHelper;
 import net.blacktortoise.android.dialog.EditAddrresDialog;
 import net.blacktortoise.android.dialog.EditAddrresDialog.IEditAddrresDialogListener;
 import net.blacktortoise.android.entity.MySocketAddress;
-import net.blacktortoise.androidlib.IBlackTortoiseService;
-import net.blacktortoise.androidlib.IBlackTortoiseServiceListener;
+import net.cattaka.libgeppa.IActiveGeppaService;
+import net.cattaka.libgeppa.IActiveGeppaServiceListener;
 import net.cattaka.libgeppa.data.DeviceEventCode;
 import net.cattaka.libgeppa.data.DeviceInfo;
 import net.cattaka.libgeppa.data.DeviceState;
@@ -79,7 +79,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            mService = IBlackTortoiseService.Stub.asInterface(service);
+            mService = IActiveGeppaService.Stub.asInterface(service);
             if (mServiceListenerSeq < 0) {
                 try {
                     mServiceListenerSeq = mService.registerServiceListener(mServiceListener);
@@ -103,7 +103,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
 
     private int mServiceListenerSeq = -1;
 
-    private IBlackTortoiseServiceListener mServiceListener = new IBlackTortoiseServiceListener.Stub() {
+    private IActiveGeppaServiceListener mServiceListener = new IActiveGeppaServiceListener.Stub() {
         private ProgressDialog mProgressDialog;
 
         @Override
@@ -139,7 +139,7 @@ public class SelectDeviceActivity extends Activity implements OnClickListener, O
         }
     };
 
-    private IBlackTortoiseService mService;
+    private IActiveGeppaService mService;
 
     private ListView mUsbDeviceList;
 

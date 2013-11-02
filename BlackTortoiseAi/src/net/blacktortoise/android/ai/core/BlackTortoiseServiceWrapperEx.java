@@ -2,7 +2,7 @@
 package net.blacktortoise.android.ai.core;
 
 import net.blacktortoise.androidlib.BlackTortoiseServiceWrapper;
-import net.blacktortoise.androidlib.IBlackTortoiseService;
+import net.cattaka.libgeppa.IActiveGeppaService;
 
 public class BlackTortoiseServiceWrapperEx extends BlackTortoiseServiceWrapper {
     private float mLastForward;
@@ -13,7 +13,7 @@ public class BlackTortoiseServiceWrapperEx extends BlackTortoiseServiceWrapper {
 
     private float mLastPitch;
 
-    public BlackTortoiseServiceWrapperEx(IBlackTortoiseService service) {
+    public BlackTortoiseServiceWrapperEx(IActiveGeppaService service) {
         super(service);
     }
 

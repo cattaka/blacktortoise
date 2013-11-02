@@ -123,8 +123,8 @@ public class MainActivity extends Activity implements IDeviceAdapterListener, On
                     float forward = -(ry * 2 - 1);
                     float turn = rx * 2 - 1;
                     if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-                        forward = 0.5f;
-                        turn = 0.5f;
+                        forward = 0f;
+                        turn = 0f;
                     }
                     { // Sends command
                         BlackTortoiseServiceWrapper wrapper = mServiceWrapper;

@@ -16,7 +16,7 @@ import net.blacktortoise.android.ai.util.IndicatorDrawer;
 import net.blacktortoise.android.ai.util.MyCapture;
 import net.blacktortoise.android.ai.util.WorkCaches;
 import net.blacktortoise.androidlib.BlackTortoiseFunctions;
-import net.blacktortoise.androidlib.IBlackTortoiseService;
+import net.cattaka.libgeppa.IActiveGeppaService;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -92,7 +92,7 @@ public class DebugActivity extends Activity {
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            IBlackTortoiseService btService = IBlackTortoiseService.Stub.asInterface(service);
+            IActiveGeppaService btService = IActiveGeppaService.Stub.asInterface(service);
             mServiceWrapper = new BlackTortoiseServiceWrapperEx(btService);
             prepareActionThread();
         }
